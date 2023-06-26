@@ -8,7 +8,7 @@ set.seed(89)
 ### simulate data
 
 gamma <- 1/4
-N <- 1e5
+N <- 1e4
 v <- 1.4
 
 delta <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
@@ -70,7 +70,7 @@ for (del_i in 1:del_n) {
                  q = sapply(t_vec, function(t) mean(y[del_ind] <= t)),
                  mtc = c(colMeans((mtc_clim - 1)*del_ind), colMeans((mtc_id - 1)*del_ind), colMeans((mtc_ex - 1)*del_ind)), 
                  mth = rep(c("Clim", "Ideal", "Extremist"), each = length(t_vec)))
-  cal_clim[del_i, ] <- colMeans((mtc_clim - 1)*del_ind)*mean() # check this
+  cal_clim[del_i, ] <- colSums((mtc_clim - 1)*del_ind) # check that average over all delta is the overall marginal tail calibration
   
   del_plots[[del_i]] <-
     plot_calibration(df, type = "Marginal tail calibration", 0, 
@@ -78,6 +78,12 @@ for (del_i in 1:del_n) {
 }
 
 do.call(gridExtra::grid.arrange, c(del_plots, nrow = 1))
+
+# check that average over all delta is the overall marginal tail calibration
+plot(t_vec, colSums(cal_clim)/N)
+lines(t_vec, colMeans(mtc_clim - 1), col = "blue")
+
+
 
 ### climatological marginal tail calibration
 
@@ -91,6 +97,7 @@ df <- data.frame(t = t_vec,
                  mth = rep(c("Clim", "Ideal", "Extremist"), each = length(t_vec)))
 
 plot_calibration(df, type = "Climatological marginal tail calibration")
+
 
 
 ### probabilistic tail calibration
@@ -195,7 +202,9 @@ for (del_i in 1:del_n) {
 
 do.call(gridExtra::grid.arrange, c(del_plots, nrow = 1))
 
-### climatological probabilistic tail calibration
+
+
+### climatological probabilistic tail calibration (EXPENSIVE)
 
 # cptc_clim <- ptc_clim
 # cptc_id <- sapply(t_vec, function(t) {
@@ -222,6 +231,7 @@ do.call(gridExtra::grid.arrange, c(del_plots, nrow = 1))
 #                  mth = rep(c("Clim", "Ideal", "Extremist"), each = length(t_vec)))
 # 
 # plot_calibration(df, type = "Climatological probabilistic tail calibration")
+
 
 
 ### quantile calibration
