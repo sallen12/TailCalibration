@@ -1,12 +1,12 @@
 Package: TailCalibration
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Evaluate the calibration of probabilistic forecasts for extreme outcomes
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: c(person(given = "Sam", family = "Allen", email = "sam.allen@unibe.ch", role = c("cre", "aut")),
+          person(given = "Jon", family = "Koh", role = "ctb"))
+Description: An R package that provides tools to evaluate the calibration of 
+    probabilistic forecasts for extreme outcomes.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.2
