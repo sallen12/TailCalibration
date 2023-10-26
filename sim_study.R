@@ -176,7 +176,6 @@ rd_q <- c(0, 0.9, 0.95, 0.99, 0.999)
 rd_vec <- quantile(y, rd_q)
 rd_vec <- sapply(rd_vec, function(z) t_vec[which.min(abs(z - t_vec))])
 
-# clim
 z <- ptc_clim[sapply(rd_vec, function(t) which(t_vec == t))]
 names(z) <- rd_q
 pit_reldiag(z, resampling = F)
