@@ -19,33 +19,6 @@ y <- rnorm(N, mu)
 
 t_vec <- seq(-10, 10, 0.1)
 
-plot_calibration <- function(df, type = "", yref = 1, title = "", ylims = NULL, both = TRUE) {
-  t_plot <- ggplot(df) + geom_line(aes(x = t, y = mtc, col = mth)) +
-    geom_hline(aes(yintercept = yref), lty = "dotted") +
-    geom_vline(aes(xintercept = max(y)), lty = "dotted") +
-    scale_x_continuous(name = "Threshold", expand = c(0, 0)) +
-    scale_y_continuous(name = type, limits = ylims) +
-    theme_bw() + theme(panel.grid = element_blank(),
-                       legend.title = element_blank(),
-                       legend.position = "bottom") +
-    ggtitle(title)
-  q_plot <- ggplot(df) + geom_line(aes(x = q, y = mtc, col = mth)) +
-    geom_hline(aes(yintercept = yref), lty = "dotted") +
-    scale_x_continuous(name = "Threshold", expand = c(0, 0)) +
-    scale_y_continuous(name = type, limits = ylims) +
-    theme_bw() + theme(panel.grid = element_blank(),
-                       legend.title = element_blank(),
-                       legend.position = "bottom")
-  if (both) {
-    q_plot <- q_plot + ggtitle(title)
-    gridExtra::grid.arrange(t_plot, q_plot)
-  } else {
-    q_plot <- q_plot + ggtitle("")
-    q_plot
-  }
-
-}
-
 
 ################################################################################
 ### marginal tail calibration
@@ -65,7 +38,7 @@ mtc_clim <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 mtc_id <- lapply(rd_vec, function(t) {
   print(t)
@@ -79,7 +52,7 @@ mtc_id <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 mtc_uf <- lapply(rd_vec, function(t) {
   print(t)
@@ -96,7 +69,7 @@ mtc_uf <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 mtc_sr <- lapply(rd_vec, function(t) {
   print(t)
@@ -110,7 +83,7 @@ mtc_sr <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 
 

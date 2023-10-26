@@ -71,7 +71,7 @@ mtc_clim <- lapply(rd_vec, function(t) {
     } else {
       Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
     }
-    data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+    data.frame(Y = Y, d = Fhat_t - Qhat_t)
   }
 })
 mtc_id <- lapply(rd_vec, function(t) {
@@ -86,7 +86,7 @@ mtc_id <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 mtc_ex <- lapply(rd_vec, function(t) {
   print(t)
@@ -100,7 +100,7 @@ mtc_ex <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 mtc_mi <- lapply(rd_vec, function(t) {
   print(t)
@@ -114,7 +114,7 @@ mtc_mi <- lapply(rd_vec, function(t) {
   } else {
     Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
   }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t) # need Fhat - Qhat = 0 for all Y > t
+  data.frame(Y = Y, d = Fhat_t - Qhat_t)
 })
 
 ## marginal difference plots
