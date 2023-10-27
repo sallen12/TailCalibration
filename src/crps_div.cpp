@@ -3,12 +3,19 @@
 #include <cmath>
 #define _USE_MATH_DEFINES
 #include <math.h>
-using namespace Rcpp;     
+using namespace Rcpp;
 
-// CRPS divergence for uniform distribution
+//' CRPS divergence for uniform distribution
+//'
+//' @param x vector of PIT values.
+//'
+//' @useDynLib TailCalibration, .registration = TRUE
+//' @importFrom Rcpp evalCpp
+//'
+//' @export
 // [[Rcpp::export]]
 double crps_div(arma::colvec x){
-  
+
   double out1 = 0;
   double out2 = 0;
   double n = x.size();
