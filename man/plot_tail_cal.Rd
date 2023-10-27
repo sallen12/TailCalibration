@@ -4,6 +4,7 @@
 \alias{plot_tail_cal}
 \alias{plot_mtc}
 \alias{plot_ptc}
+\alias{plot_ptc_div}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 plot_mtc(
@@ -17,9 +18,22 @@ plot_mtc(
 )
 
 plot_ptc(cal, names = NULL, title = NULL)
+
+plot_ptc_div(
+  cal,
+  t,
+  names = NULL,
+  ylims = NULL,
+  xlims = NULL,
+  ylab = "Miscalibration",
+  xlab = "Threshold",
+  title = NULL
+)
 }
 \arguments{
 \item{cal}{data frame or list of data frames containing the data to be plotted.}
+
+\item{names}{names to be used in legend.}
 
 \item{xlims, ylims}{lower and upper limits of the axes.}
 

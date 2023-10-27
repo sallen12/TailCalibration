@@ -3,6 +3,7 @@
 #' Plot marginal and probabilistic tail calibration of probabilistic forecasts
 #'
 #' @param cal data frame or list of data frames containing the data to be plotted.
+#' @param names names to be used in legend.
 #' @param t threshold(s) corresponding to the data in \code{cal}.
 #' @param xlims,ylims lower and upper limits of the axes.
 #' @param xlab,ylab axes labels
@@ -62,6 +63,7 @@ plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab
   return(mtc)
 }
 
+
 #' @rdname plot_tail_cal
 #' @export
 plot_ptc <- function(cal, names = NULL, title = NULL) {
@@ -75,6 +77,35 @@ plot_ptc <- function(cal, names = NULL, title = NULL) {
   }
 
   return(ptc)
+}
+
+
+#' @rdname plot_tail_cal
+#' @export
+plot_ptc_div <- function(cal, t, names = NULL, ylims = NULL, xlims = NULL,
+                         ylab = "Miscalibration", xlab = "Threshold", title = NULL) {
+
+  if (is.data.frame(cal[[1]])) {
+    div <- sapply(seq_along(t), function(i) crps_div(cal[[i]]$cpit))
+    df <- data.frame(t = t, d = div)
+    ptc_div <- ggplot(df) + geom_line(aes(x = t, y = d))
+  } else {
+    div <- sapply(cal, function(x) sapply(seq_along(t), function(i) crps_div(x[[i]]$cpit)))
+    if (is.null(names)) names <- colnames(div)
+    df <- data.frame(t = t, d = c(div),
+                     mth = rep(names, each = length(t)))
+    ptc_div <- ggplot(df) + geom_line(aes(x = t, y = d, col = mth))
+  }
+
+  ptc_div <- ptc_div + geom_hline(aes(yintercept = 0), lty = "dotted") +
+    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
+    scale_y_continuous(name = ylab, limits = ylims) +
+    theme_bw() + theme(panel.grid = element_blank(),
+                       legend.title = element_blank(),
+                       legend.position = "bottom") +
+    ggtitle(title)
+
+  return(ptc_div)
 }
 
 
