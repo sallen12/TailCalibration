@@ -48,10 +48,12 @@ tail_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...) {
 #' @export
 tail_marg_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), ...) {
   check_inputs(y = y, F_x = F_x, t = t, z = z, type = "marg", ...)
-  d <- sapply(t, function(tt) {
+  d <- lapply(t, function(tt) {
     ind <- y > tt
     Fhat_t <- sapply(z, function(zz) (F_x(zz + tt, ...) - F_x(tt, ...))/(1 - F_x(tt, ...)))
-    Fhat_t <- colMeans(Fhat_t[ind, ])
+    if (is.matrix(Fhat_t)) {
+      Fhat_t <- colMeans(Fhat_t[ind, ])
+    }
     if (sum(ind) == 0) {
       Qhat_t <- NA
     } else if (sum(ind) == 1) {
@@ -59,11 +61,13 @@ tail_marg_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), ...) {
     } else {
       Qhat_t <- colMeans(outer(y[ind] - tt, z, FUN = function(x1, x2) x1 <= x2))
     }
-    return(Fhat_t - Qhat_t)
+    return(data.frame(z = z, d = Fhat_t - Qhat_t))
   })
-  d <- as.data.frame(d)
-  colnames(d) <- paste0("t", 1:length(t))
-  d <- cbind(z, d)
+  if (length(t) == 1) {
+    d <- d[[1]]
+  } else {
+    names(d) <- round(t, 2)
+  }
   return(d)
 }
 
