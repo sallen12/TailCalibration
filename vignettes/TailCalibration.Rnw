@@ -1,0 +1,93 @@
+\documentclass[article,shortnames,nojss]{jss}
+
+%% -- LaTeX packages and custom commands ---------------------------------------
+
+%% packages
+\usepackage{thumbpdf,lmodern}
+\usepackage{amsfonts,amsmath,amssymb,amsthm}
+\usepackage{booktabs,setspace,longtable}
+\usepackage[T1]{fontenc}
+
+%% custom commands
+\newcommand{\class}[1]{`\code{#1}'}
+\newcommand{\fct}[1]{\code{#1()}}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\by}{\mathbf{y}}
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bX}{\mathbf{X}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\dd}{\hspace{0.1cm} \mathrm{d}}
+
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{main}
+%\VignetteDepends{TailCalibration,ggplot2,}
+%\VignetteKeywords{probabilistic forecasting, predictive distributions, calibration, extremes, R}
+%\VignettePackage{TailCalibration}
+%\VignetteEncoding{UTF-8}
+
+%\usepackage{Sweave}
+<<preliminaries, echo=FALSE, message=FALSE>>=
+# Using knitr for manuscript
+library(knitr)
+opts_chunk$set(engine = 'R', tidy = FALSE, message = FALSE, warning = FALSE)
+#render_sweave()
+
+# JSS code formatting
+options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
+
+# Formatting
+options(scipen = 1, digits = 3)
+Sys.setenv(LANG = 'en')
+
+# RNG initialization
+set.seed(511)
+
+# Required packages
+library(TailCalibration)
+library(ggplot2)
+@
+
+
+\author{Sam Allen\\University of Bern\\Oeschger Centre for Climate Change Research}
+\Plainauthor{Sam Allen}
+
+\title{\pkg{TailCalibration}: Assessing the calibration of probabilistic forecasts for extreme outcomes \proglang{R}}
+\Plaintitle{TailCalibration: Assessing the calibration of probabilistic forecasts for extreme outcomes R}
+\Shorttitle{TailCalibration}
+
+\Abstract{
+Add abstract here
+}
+
+\Keywords{forecast evaluation, probabilistic forecasting, calibration, extremes, \proglang{R}}
+\Plainkeywords{forecast evaluation, probabilistic forecasting, calibration, extremes, R}
+
+\Address{
+  Sam Allen\\
+  University of Bern\\
+  Institute of Mathematical Statistics and Actuarial Science\\
+  Alpeneggstrasse 22\\
+  3012 Bern, Switzerland\\
+  E-Mail: \email{sam.allen@unibe.ch}\\
+  \emph{and}\\
+  Oeschger Centre for Climate Change Research\\
+}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+
+
+\section{Discussion}\label{sec:discussion}
+
+
+%% Bibliography
+\bibliography{bibliography}
+
+\end{document}
