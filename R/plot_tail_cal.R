@@ -33,19 +33,18 @@ NULL
 
 #' @rdname plot_tail_cal
 #' @export
-plot_mtc <- function(cal, t = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
+plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
   if (is.data.frame(cal)) {
     df <- cal
-    df$t <- NULL
     mtc <- ggplot(df) + geom_line(aes(x = z, y = d))
   } else {
     df <- do.call(rbind, cal)
-    if (is.null(t)) {
-      df$t <- rep(names(cal), each = nrow(cal[[1]]))
+    if (is.null(names)) {
+      df$names <- rep(names(cal), each = nrow(cal[[1]]))
     } else {
-      df$t <- rep(t, each = nrow(cal[[1]]))
+      df$names <- rep(names, each = nrow(cal[[1]]))
     }
-    mtc <- ggplot(df) + geom_line(aes(x = z, y = d, col = as.factor(t)))
+    mtc <- ggplot(df) + geom_line(aes(x = z, y = d, col = as.factor(names)))
   }
 
   if (is.null(ylab)) ylab <- expression("E[" ~ F[t] ~ "(y)] - Q(Y - t ≤ y | Y > t)")
@@ -61,6 +60,21 @@ plot_mtc <- function(cal, t = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = N
     ggtitle(title)
 
   return(mtc)
+}
+
+#' @rdname plot_tail_cal
+#' @export
+plot_ptc <- function(cal, names = NULL, title = NULL) {
+  if (is.data.frame(cal)) {
+    cal <- cal$cpit
+    ptc <- pit_reldiag(cal, resampling = T, title = title)
+  } else {
+    cal <- lapply(cal, function(z) z$cpit)
+    if (!is.null(names)) names(cal) <- names
+    ptc <- pit_reldiag(cal, resampling = F, title = title)
+  }
+
+  return(ptc)
 }
 
 

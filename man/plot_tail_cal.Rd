@@ -3,28 +3,31 @@
 \name{plot_tail_cal}
 \alias{plot_tail_cal}
 \alias{plot_mtc}
+\alias{plot_ptc}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 plot_mtc(
   cal,
-  t = NULL,
+  names = NULL,
   ylims = c(-0.2, 0.2),
   xlims = NULL,
   ylab = NULL,
   xlab = NULL,
   title = NULL
 )
+
+plot_ptc(cal, names = NULL, title = NULL)
 }
 \arguments{
 \item{cal}{data frame or list of data frames containing the data to be plotted.}
-
-\item{t}{threshold(s) corresponding to the data in \code{cal}.}
 
 \item{xlims, ylims}{lower and upper limits of the axes.}
 
 \item{xlab, ylab}{axes labels}
 
 \item{title}{plot title.}
+
+\item{t}{threshold(s) corresponding to the data in \code{cal}.}
 }
 \value{
 ggplot object
