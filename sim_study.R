@@ -2,7 +2,7 @@
 ### set up
 
 #devtools::install_github("sallen12/WeightedForecastVerification")
-#library(WeightedForecastVerification)
+library(TailCalibration)
 library(evmix)
 
 set.seed(89)
@@ -12,7 +12,7 @@ set.seed(89)
 ### simulate data
 
 gamma <- 1/4
-N <- 1e6
+N <- 1e5
 v <- 1.4
 
 delta <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
@@ -20,6 +20,8 @@ y <- rexp(N, rate = delta)
 
 rd_q <- c(0, 0.9, 0.95, 0.99, 0.999)
 rd_vec <- quantile(y, rd_q)
+
+t_vec <- seq(0, 100, 0.1)
 
 
 ################################################################################
@@ -32,7 +34,7 @@ mtc_ex <- tail_marg_cal(y, pexp, t = rd_vec, z = t_vec, rate = delta/v)
 
 ## marginal difference plots
 
-plot_mtc(mtc_id)
+plot_mtc(mtc_id, names = rd_q)
 #ggsave("plots/mtc_dif_1e6_id.png", width = 3.2, height = 3)
 
 
@@ -52,8 +54,6 @@ plot_ptc(ptc_id, names = rd_q)
 
 ################################################################################
 ### conditional probabilistic tail calibration
-
-t_vec <- seq(0, 100, 0.1)
 
 ptc_cl <- tail_prob_cal(y, pgpd, t = t_vec, xi = gamma)
 ptc_id <- tail_prob_cal(y, pexp, t = t_vec, rate = delta)
