@@ -14,15 +14,13 @@ set.seed(89)
 ### simulate data
 
 gamma <- 1/4
-N <- 1e6
+N <- 1e5
 v <- 1.4
 
 delta <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
-delta_mi <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
 y <- rexp(N, rate = delta)
 
 t_vec <- seq(0, 100, 0.1)
-q_vec <- sapply(t_vec, function(t) mean(y <= t))
 
 plot_calibration <- function(df, type = "", yref = 1, title = "", ylims = NULL, both = TRUE) {
   t_plot <- ggplot(df) + geom_line(aes(x = t, y = mtc, col = mth)) +
@@ -58,131 +56,33 @@ plot_calibration <- function(df, type = "", yref = 1, title = "", ylims = NULL, 
 rd_q <- c(0, 0.9, 0.95, 0.99, 0.999)
 rd_vec <- quantile(y, rd_q)
 
-mtc_clim <- lapply(rd_vec, function(t) {
-  print(t)
-  ind <- y > t
-  if (sum(ind) == 0) {
-    NA
-  } else {
-    Y <- t_vec
-    Fhat_t <- (pgpd(Y + t, 0, 1, gamma) - pgpd(t, 0, 1, gamma))/(1 - pgpd(t, 0, 1, gamma))
-    if (sum(ind) == 1) {
-      Qhat_t <- (y[ind] - t) <= Y
-    } else {
-      Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
-    }
-    data.frame(Y = Y, d = Fhat_t - Qhat_t)
-  }
-})
-mtc_id <- lapply(rd_vec, function(t) {
-  print(t)
-  ind <- y > t
-  Y <- t_vec
-  Fhat_t <- colMeans(sapply(Y, function(z) (pexp(z + t, delta[ind]) - pexp(t, delta[ind]))/(1 - pexp(t, delta[ind]))))
-  if (sum(ind) == 0) {
-    Qhat_t <- NA
-  } else if (sum(ind) == 1) {
-    Qhat_t <- (y[ind] - t) <= Y
-  } else {
-    Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
-  }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t)
-})
-mtc_ex <- lapply(rd_vec, function(t) {
-  print(t)
-  ind <- y > t
-  Y <- t_vec
-  Fhat_t <- colMeans(sapply(Y, function(z) (pexp(z + t, delta[ind]/v) - pexp(t, delta[ind]/v))/(1 - pexp(t, delta[ind]/v))))
-  if (sum(ind) == 0) {
-    Qhat_t <- NA
-  } else if (sum(ind) == 1) {
-    Qhat_t <- (y[ind] - t) <= Y
-  } else {
-    Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
-  }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t)
-})
-mtc_mi <- lapply(rd_vec, function(t) {
-  print(t)
-  ind <- y > t
-  Y <- t_vec
-  Fhat_t <- colMeans(sapply(Y, function(z) (pexp(z + t, delta_mi[ind]) - pexp(t, delta_mi[ind]))/(1 - pexp(t, delta_mi[ind]))))
-  if (sum(ind) == 0) {
-    Qhat_t <- NA
-  } else if (sum(ind) == 1) {
-    Qhat_t <- (y[ind] - t) <= Y
-  } else {
-    Qhat_t <- colMeans(outer(y[ind] - t, Y, FUN = function(x, y) x <= y))
-  }
-  data.frame(Y = Y, d = Fhat_t - Qhat_t)
-})
+mtc_cl <- tail_marg_cal(y, pgpd, t = rd_vec, z = t_vec, xi = gamma)
+mtc_id <- tail_marg_cal(y, pexp, t = rd_vec, z = t_vec, rate = delta)
+mtc_ex <- tail_marg_cal(y, pexp, t = rd_vec, z = t_vec, rate = delta/v)
+
 
 ## marginal difference plots
-df <- do.call(rbind, mtc_id)
-df$t <- rep(rd_q, each = length(t_vec))
 
-ggplot(df) + geom_line(aes(x = Y, y = d, col = as.factor(t))) +
-  geom_hline(aes(yintercept = 0), lty = "dotted") +
-  scale_x_continuous(name = "y", expand = c(0, 0)) +
-  scale_y_continuous(name = expression("E[" ~ F[t] ~ "(y)] - Q(Y - t ≤ y | Y > t)"),
-                     limits = c(-0.2, 0.2), expand = c(0, 0)) +
-  theme_bw() +
-  theme(panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.justification = c(1, 1),
-        legend.position = c(0.99, 0.99)) +
-  guides(col = guide_legend(nrow = 2, byrow = TRUE))
-ggsave("plots/mtc_dif_1e6_mi.png", width = 3.2, height = 3)
+plot_mtc(mtc_id)
+#ggsave("plots/mtc_dif_1e6_id.png", width = 3.2, height = 3)
 
 
 ################################################################################
 ### probabilistic tail calibration
 
-ptc_clim <- sapply(t_vec, function(t) {
-  ind <- y > t
-  if (sum(ind) == 0) {
-    NA
-  } else {
-    (pgpd(y[ind], 0, 1, gamma) - pgpd(t, 0, 1, gamma))/(1 - pgpd(t, 0, 1, gamma))
-  }
-})
-ptc_id <- sapply(t_vec, function(t) {
-  ind <- y > t
-  if (sum(ind) == 0) {
-    NA
-  } else {
-    (pexp(y[ind], delta[ind]) - pexp(t, delta[ind]))/(1 - pexp(t, delta[ind]))
-  }
-})
-ptc_ex <- sapply(t_vec, function(t) {
-  ind <- y > t
-  if (sum(ind) == 0) {
-    NA
-  } else {
-    (pexp(y[ind], delta[ind]/v) - pexp(t, delta[ind]/v))/(1 - pexp(t, delta[ind]/v))
-  }
-})
-ptc_mi <- sapply(t_vec, function(t) {
-  ind <- y > t
-  if (sum(ind) == 0) {
-    NA
-  } else {
-    (pexp(y[ind], delta_mi[ind]) - pexp(t, delta_mi[ind]))/(1 - pexp(t, delta_mi[ind]))
-  }
-})
-
-## reliability diagrams
-rd_q <- c(0, 0.9, 0.95, 0.99, 0.999)
-rd_vec <- quantile(y, rd_q)
-rd_vec <- sapply(rd_vec, function(z) t_vec[which.min(abs(z - t_vec))])
-
-z <- ptc_clim[sapply(rd_vec, function(t) which(t_vec == t))]
-names(z) <- rd_q
-pit_reldiag(z, resampling = F)
-ggsave("plots/ptc_rh_1e6_cl.png", width = 3.2, height = 3)
+ptc_cl <- tail_prob_cal(y, pgpd, t = rd_vec, xi = gamma)
+ptc_id <- tail_prob_cal(y, pexp, t = rd_vec, rate = delta)
+ptc_ex <- tail_prob_cal(y, pexp, t = rd_vec, rate = delta/v)
 
 
-## condition divergence on delta
+## cpit reliability diagrams
+
+plot_ptc(ptc_ex, names = rd_q)
+#ggsave("plots/ptc_rh_1e6_cl.png", width = 3.2, height = 3)
+
+
+################################################################################
+### conditional probabilistic tail calibration
 Rcpp::sourceCpp("crps_div.cpp")
 
 ptc_clim_del <- lapply(seq_along(t_vec), function(i) cbind(ptc_clim[[i]], delta[y > t_vec[i]]))
@@ -217,5 +117,13 @@ for (del_i in 1:del_n) {
 
 cond_plots <- do.call(gridExtra::grid.arrange, c(del_plots, nrow = 1))
 ggsave(plot = cond_plots, "plots/ptc_div_1e6_cond.png", width = 17, height = 3.9)
+
+
+
+
+
+
+
+
 
 
