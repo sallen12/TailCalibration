@@ -3,6 +3,8 @@
 export(crps_div)
 export(plot_mtc)
 export(plot_ptc)
+export(plot_ptc_cond)
+export(plot_ptc_div)
 export(tail_cal)
 export(tail_marg_cal)
 export(tail_prob_cal)
