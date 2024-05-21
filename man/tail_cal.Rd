@@ -4,13 +4,32 @@
 \alias{tail_cal}
 \alias{tail_marg_cal}
 \alias{tail_prob_cal}
+\alias{tail_cal_occ}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 tail_cal(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...)
 
-tail_marg_cal(y, F_x, t, z = seq(0, 10, 0.1), ...)
+tail_marg_cal(
+  y,
+  F_x,
+  t,
+  ratio = c("comb", "sev", "occ"),
+  z = seq(0, 10, 0.1),
+  sup = FALSE,
+  ...
+)
 
-tail_prob_cal(y, F_x, t, ...)
+tail_prob_cal(
+  y,
+  F_x,
+  t,
+  ratio = c("comb", "sev", "occ"),
+  u = seq(0, 1, 0.01),
+  sup = FALSE,
+  ...
+)
+
+tail_cal_occ(y, F_x, t, type = c("all", "ratio", "dif"), ...)
 }
 \arguments{
 \item{y}{vector of realized values.}
@@ -24,6 +43,10 @@ tail_prob_cal(y, F_x, t, ...)
 \item{type}{string denoting whether to assess marginal or probabilistic tail calibration.}
 
 \item{...}{additional arguments to F_x.}
+
+\item{ratio}{ratio to return; one of 'comb', 'sev', 'occ'.}
+
+\item{sup}{logical specifying whether to take the supremum of the differences in marginal tail calibration.}
 }
 \value{
 vector of conditional probability integral transform (PIT) values (for \code{type = "prob"}),

@@ -157,6 +157,7 @@ cpit_weibull <- function(y, shape, scale = 1, a = -Inf, b = Inf, return_na = TRU
 #' @rdname cpit_param
 #' @export
 cpit_dist <- function(y, F_x, a = -Inf, b = Inf, return_na = TRUE, ...) {
+  if (sum(y >= a & y <= b) == 0) warning(paste("no values in y fall between a =", a, "and b =", b))
   p_y <- F_x(y, ...)
   p_a <- F_x(a, ...)
   p_b <- F_x(b, ...)
