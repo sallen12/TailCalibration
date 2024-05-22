@@ -159,8 +159,16 @@ cpit_weibull <- function(y, shape, scale = 1, a = -Inf, b = Inf, return_na = TRU
 cpit_dist <- function(y, F_x, a = -Inf, b = Inf, return_na = TRUE, ...) {
   if (sum(y >= a & y <= b) == 0) warning(paste("no values in y fall between a =", a, "and b =", b))
   p_y <- F_x(y, ...)
-  p_a <- F_x(a, ...)
-  p_b <- F_x(b, ...)
+  if (a == -Inf) {
+    p_a <- 0
+  } else {
+    p_a <- F_x(a, ...)
+  }
+  if (b == Inf) {
+    p_b <- 1
+  } else {
+    p_b <- F_x(b, ...)
+  }
   pit <- (p_y - p_a)/(p_b - p_a)
   if (a == -Inf) {
     pit[p_b == 0] <- 0
