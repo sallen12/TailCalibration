@@ -105,13 +105,13 @@ tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0,
   if (ratio == "comb") {
     R <- lapply(t, function(tt) {
       exc_p <- 1 - mean(F_x(tt, ...))
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      cpit <- cpit_dist(y, F_x, a = tt, return_na = FALSE, ...)
       rat <- sapply(u, function(uu) sum(cpit <= u)/(length(y)*exc_p))
       data.frame(u = u, rat = rat)
     })
   } else if (ratio == "sev") {
     R <- lapply(t, function(tt) {
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      cpit <- cpit_dist(y, F_x, a = tt, return_na = FALSE, ...)
       rat <- sapply(u, function(uu) mean(cpit <= uu))
       data.frame(u = u, rat = rat)
     })
@@ -131,8 +131,8 @@ tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0,
     R <- R[[1]]
   } else if (length(y) == 1) {
       R <- as.data.frame(t(sapply(seq_along(t), function(i) R[[i]][1, ])))
-  } else {
-    names(R) <- round(t, 2)
+  } else if (ratio %in% c("comb", "sev")) {
+      names(R) <- round(t, 2)
   }
   return(R)
 }
