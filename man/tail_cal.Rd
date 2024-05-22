@@ -5,6 +5,7 @@
 \alias{tail_marg_cal}
 \alias{tail_prob_cal}
 \alias{tail_cal_occ}
+\alias{tail_prob_div}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 tail_cal(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...)
@@ -26,10 +27,31 @@ tail_prob_cal(
   ratio = c("comb", "sev", "occ"),
   u = seq(0, 1, 0.01),
   sup = FALSE,
+  qu = FALSE,
+  subset = NULL,
   ...
 )
 
-tail_cal_occ(y, F_x, t, type = c("all", "ratio", "dif"), ...)
+tail_cal_occ(
+  y,
+  F_x,
+  t,
+  type = c("all", "ratio", "dif"),
+  qu = FALSE,
+  subset = NULL,
+  ...
+)
+
+tail_prob_div(
+  y,
+  F_x,
+  group,
+  t,
+  ratio = c("comb", "sev", "occ"),
+  sup = TRUE,
+  qu = FALSE,
+  ...
+)
 }
 \arguments{
 \item{y}{vector of realized values.}

@@ -35,6 +35,7 @@
 #' @name tail_cal
 NULL
 
+
 #' @rdname tail_cal
 #' @export
 tail_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...) {
@@ -44,6 +45,7 @@ tail_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...) {
     tail_marg_cal(y, F_x, t, z, ...)
   }
 }
+
 
 #' @rdname tail_cal
 #' @export
@@ -97,26 +99,35 @@ tail_marg_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), z = seq(0,
   return(D)
 }
 
+
 #' @rdname tail_cal
 #' @export
-tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0, 1, 0.01), sup = FALSE, ...) {
+tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0, 1, 0.01),
+                          sup = FALSE, qu = FALSE, subset = NULL, ...) {
   check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
+  ratio <- match.arg(ratio)
+
+  if (is.null(subset)) subset <- rep(TRUE, length(y))
+  n <- sum(subset)
 
   if (ratio == "comb") {
     R <- lapply(t, function(tt) {
-      exc_p <- 1 - mean(F_x(tt, ...))
-      cpit <- cpit_dist(y, F_x, a = tt, return_na = FALSE, ...)
-      rat <- sapply(u, function(uu) sum(cpit <= u)/(length(y)*exc_p))
+      exc_p <- 1 - F_x(tt, ...)
+      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
+      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      cpit <- na.omit(cpit[subset])
+      rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
       data.frame(u = u, rat = rat)
     })
   } else if (ratio == "sev") {
     R <- lapply(t, function(tt) {
-      cpit <- cpit_dist(y, F_x, a = tt, return_na = FALSE, ...)
+      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      cpit <- na.omit(cpit[subset])
       rat <- sapply(u, function(uu) mean(cpit <= uu))
       data.frame(u = u, rat = rat)
     })
   } else if (ratio == "occ") {
-    R <- tail_cal_occ(y, F_x, t, type = "ratio", ...)
+    R <- tail_cal_occ(y, F_x, t, type = "ratio", qu = qu, subset = subset, ...)
   }
 
   if (sup) {
@@ -137,12 +148,15 @@ tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0,
   return(R)
 }
 
+
 #' @rdname tail_cal
 #' @export
-tail_cal_occ <- function(y, F_x, t, type = c("all", "ratio", "dif"), ...) {
+tail_cal_occ <- function(y, F_x, t, type = c("all", "ratio", "dif"), qu = FALSE, subset = NULL, ...) {
   type <- match.arg(type)
-  G_t <- sapply(t, function(tt) mean(y > tt))
-  F_t <- sapply(t, function(tt) mean(1 - F_x(tt, ...)))
+  if (is.null(subset)) subset <- rep(TRUE, length(y))
+  G_t <- sapply(t, function(tt) mean(y[subset] > tt))
+  F_t <- sapply(t, function(tt) mean(1 - F_x(tt, ...)[subset]))
+  if (qu) t <- 1 - G_t
   df <- data.frame(t = t, G_t = G_t, F_t = F_t, rat = G_t/F_t, dif = G_t - F_t)
   if (type == "all") {
     return(df)
@@ -152,6 +166,31 @@ tail_cal_occ <- function(y, F_x, t, type = c("all", "ratio", "dif"), ...) {
     return(df[c("t", "dif")])
   }
 }
+
+
+#' @rdname tail_cal
+#' @export
+tail_prob_div <- function(y, F_x, group, t, ratio = c("comb", "sev", "occ"), sup = TRUE, qu = FALSE, ...) {
+  check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
+  ratio <- match.arg(ratio)
+
+  grps <- unique(group)
+
+  R_g <- lapply(grps, function(g) {
+    ind <- group == g
+    tail_prob_cal(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = ind, ...)
+  })
+
+  if (sup) {
+    if (qu) t <- sapply(t, function(tt) mean(y <= tt))
+    R_g <- lapply(R_g, function(x) data.frame(t = t, d = x))
+  }
+
+  names(R_g) <- grps
+
+  return(R_g)
+}
+
 
 check_inputs <- function(y, F_x, t, z, type, ...) {
   if (!is.numeric(y)) stop("'y' is not numeric")

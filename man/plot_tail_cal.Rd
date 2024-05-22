@@ -4,7 +4,12 @@
 \alias{plot_tail_cal}
 \alias{plot_mtc}
 \alias{plot_ptc}
-\alias{plot_ptc_div}
+\alias{plot_ptc_com}
+\alias{plot_ptc_sev}
+\alias{plot_mtc_com}
+\alias{plot_mtc_sev}
+\alias{plot_tc_occ}
+\alias{plot_ptc_div_comb}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 plot_mtc(
@@ -17,18 +22,69 @@ plot_mtc(
   title = NULL
 )
 
-plot_ptc(cal, names = NULL, title = NULL)
-
-plot_ptc_div(
+plot_ptc(
   cal,
-  t,
+  ratio = c("com", "sev", "occ"),
   names = NULL,
-  ylims = NULL,
+  xlab = NULL,
+  ylab = NULL,
   xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_ptc_com(
+  cal,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_ptc_sev(
+  cal,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_mtc_com(
+  cal,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_mtc_sev(
+  cal,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_tc_occ(
+  cal,
+  xlab = "t",
+  ylab = "Occurrence ratio",
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_ptc_div_comb(
+  cal,
+  xlab = "t",
   ylab = "Miscalibration",
-  xlab = "Threshold",
-  title = NULL,
-  type = c("sup", "cramer")
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
 )
 }
 \arguments{
