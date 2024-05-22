@@ -27,7 +27,8 @@ plot_ptc_div(
   xlims = NULL,
   ylab = "Miscalibration",
   xlab = "Threshold",
-  title = NULL
+  title = NULL,
+  type = c("sup", "cramer")
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ plot_ptc_div(
 \item{title}{plot title.}
 
 \item{t}{threshold(s) corresponding to the data in \code{cal}.}
+
+\item{type}{type of divergence used to measure miscalibration.}
 }
 \value{
 ggplot object

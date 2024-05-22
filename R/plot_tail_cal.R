@@ -8,6 +8,7 @@
 #' @param xlims,ylims lower and upper limits of the axes.
 #' @param xlab,ylab axes labels
 #' @param title plot title.
+#' @param type type of divergence used to measure miscalibration.
 #'
 #' @return
 #' ggplot object
@@ -36,6 +37,7 @@ NULL
 #' @rdname plot_tail_cal
 #' @export
 plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
+
   if (is.data.frame(cal)) {
     df <- cal
     mtc <- ggplot(df) + geom_line(aes(x = z, y = d))
@@ -84,14 +86,23 @@ plot_ptc <- function(cal, names = NULL, title = NULL) {
 #' @rdname plot_tail_cal
 #' @export
 plot_ptc_div <- function(cal, t, names = NULL, ylims = NULL, xlims = NULL,
-                         ylab = "Miscalibration", xlab = "Threshold", title = NULL) {
+                         ylab = "Miscalibration", xlab = "Threshold", title = NULL,
+                         type = c("sup", "cramer")) {
 
   if (is.data.frame(cal[[1]])) {
-    div <- sapply(seq_along(t), function(i) crps_div(cal[[i]]$cpit))
+    if (type == "cramer") {
+      div <- sapply(seq_along(t), function(i) crps_div(cal[[i]]$cpit))
+    } else {
+      div <- sapply(seq_along(t), function(i) sup_div(cal[[i]]$cpit))
+    }
     df <- data.frame(t = t, d = div)
     ptc_div <- ggplot(df) + geom_line(aes(x = t, y = d))
   } else {
-    div <- sapply(cal, function(x) sapply(seq_along(t), function(i) crps_div(x[[i]]$cpit)))
+    if (type == "cramer") {
+      div <- sapply(cal, function(x) sapply(seq_along(t), function(i) crps_div(x[[i]]$cpit)))
+    } else {
+      div <- sapply(cal, function(x) sapply(seq_along(t), function(i) sup_div(x[[i]]$cpit)))
+    }
     if (is.null(names)) names <- colnames(div)
     df <- data.frame(t = t, d = c(div),
                      mth = rep(names, each = length(t)))
@@ -110,3 +121,7 @@ plot_ptc_div <- function(cal, t, names = NULL, ylims = NULL, xlims = NULL,
 }
 
 
+sup_div <- function(z, u = seq(0, 1, 0.01)) {
+  F_x <- sapply(u, function(uu) mean(z <= uu))
+  max(abs(F_x - u))
+}
