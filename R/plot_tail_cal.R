@@ -140,42 +140,6 @@ plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio"
 
 
 ################################################################################
-##### conditional probabilistic tail calibration
-
-
-#' @rdname plot_tail_cal
-#' @export
-plot_ptc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
-
-  if (is.data.frame(cal)) {
-    tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
-  } else {
-    df <- do.call(rbind, cal)
-    if (!is.null(names)) {
-      if (is.numeric(names)) names <- as.factor(names)
-      df$g <- rep(names, sapply(cal, nrow))
-    } else {
-      df$g <- rep(names(cal), sapply(cal, nrow))
-    }
-    tc <- ggplot(df) + geom_line(aes(x = t, y = d, col = g))
-  }
-
-  tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +
-    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
-    scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
-    theme_bw() +
-    theme(panel.grid = element_blank(),
-          legend.title = element_blank(),
-          legend.justification = c(0, 1),
-          legend.position = c(0.01, 0.99),
-          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
-    ggtitle(title)
-
-  return(tc)
-}
-
-
-################################################################################
 ##### marginal tail calibration
 
 
@@ -243,15 +207,39 @@ plot_mtc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
 
 
 ################################################################################
-##### conditional marginal tail calibration
+##### conditional tail calibration
 
 
+#' @rdname plot_tail_cal
+#' @export
+plot_tc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
 
+  if (is.data.frame(cal)) {
+    tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
+  } else {
+    df <- do.call(rbind, cal)
+    if (!is.null(names)) {
+      if (is.numeric(names)) names <- as.factor(names)
+      df$g <- rep(names, sapply(cal, nrow))
+    } else {
+      df$g <- rep(names(cal), sapply(cal, nrow))
+    }
+    tc <- ggplot(df) + geom_line(aes(x = t, y = d, col = g))
+  }
 
+  tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +
+    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
+    scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
+    theme_bw() +
+    theme(panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.justification = c(0, 1),
+          legend.position = c(0.01, 0.99),
+          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
+    ggtitle(title)
 
-
-
-
+  return(tc)
+}
 
 
 

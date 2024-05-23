@@ -172,10 +172,10 @@ for (i in 1:n_grp) group[delta >= quantile(delta, (i - 1)/n_grp)] <- paste0("B",
 
 com_div <- tail_prob_div(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
 
-com_div[["B1"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
+com_div[["B1"]] |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
 ggsave("plots/ex_opt_com_div_1e6_B1.png", width = 3, height = 3)
-com_div[["B2"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
+com_div[["B2"]] |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
 ggsave("plots/ex_opt_com_div_1e6_B2.png", width = 3, height = 3)
-com_div[["B3"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
+com_div[["B3"]] |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
 ggsave("plots/ex_opt_com_div_1e6_B3.png", width = 3, height = 3)
 

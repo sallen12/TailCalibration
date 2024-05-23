@@ -6,10 +6,10 @@
 \alias{plot_ptc_com}
 \alias{plot_ptc_sev}
 \alias{plot_tc_occ}
-\alias{plot_ptc_div}
 \alias{plot_mtc}
 \alias{plot_mtc_com}
 \alias{plot_mtc_sev}
+\alias{plot_tc_div}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 plot_ptc(
@@ -53,16 +53,6 @@ plot_tc_occ(
   title = NULL
 )
 
-plot_ptc_div(
-  cal,
-  names = NULL,
-  xlab = NULL,
-  ylab = NULL,
-  xlims = NULL,
-  ylims = NULL,
-  title = NULL
-)
-
 plot_mtc(
   cal,
   names = NULL,
@@ -84,6 +74,16 @@ plot_mtc_com(
 
 plot_mtc_sev(
   cal,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_tc_div(
+  cal,
+  names = NULL,
   xlab = NULL,
   ylab = NULL,
   xlims = NULL,
