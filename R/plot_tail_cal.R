@@ -49,11 +49,11 @@ plot_ptc <- function(cal, ratio = c("com", "sev", "occ"), names = NULL,
   }
 
   if (ratio == "com") {
-    tc <- plot_ptc_com(cal, xlab, ylab, xlims, ylims, title)
+    tc <- plot_ptc_com(cal, names, xlab, ylab, xlims, ylims, title)
   } else if (ratio == "sev") {
-    tc <- plot_ptc_sev(cal, xlab, ylab, xlims, ylims, title)
+    tc <- plot_ptc_sev(cal, names, xlab, ylab, xlims, ylims, title)
   } else if (ratio == "occ") {
-    tc <- plot_tc_occ(cal, xlab, ylab, xlims, ylims, title)
+    tc <- plot_tc_occ(cal, names, xlab, ylab, xlims, ylims, title)
   }
 
   return(tc)
