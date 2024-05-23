@@ -29,7 +29,7 @@
 #' @examples
 #' Examples to be added here.
 #'
-#' @import ggplot2 WeightedForecastVerification
+#' @import ggplot2
 #' @name plot_tail_cal
 NULL
 
