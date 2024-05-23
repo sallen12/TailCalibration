@@ -34,25 +34,8 @@
 NULL
 
 
-#' @rdname plot_tail_cal
-#' @export
-plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
-
-  if (!is.data.frame(cal)) {
-    if (!is.null(names)) names(cal) <- names
-    resampling <- FALSE
-  }
-
-  if (ratio == "comb") {
-    tc <- plot_mtc_com(cal, resampling = resampling, title = title)
-  } else if (ratio == "sev") {
-    tc <- plot_mtc_sev(cal, resampling = resampling, title = title)
-  } else if (ratio == "occ") {
-    tc <- plot_tc_occ(cal, resampling = resampling, title = title)
-  }
-
-  return(tc)
-}
+################################################################################
+##### probabilistic tail calibration
 
 
 #' @rdname plot_tail_cal
@@ -79,11 +62,11 @@ plot_ptc <- function(cal, ratio = c("com", "sev", "occ"), names = NULL,
 
 #' @rdname plot_tail_cal
 #' @export
-plot_ptc_com <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_ptc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.null(ylab)) ylab <- "Combined ratio"
 
-  tc <- plot_ptc_sev(cal, xlab, ylab, xlims, ylims, title)
+  tc <- plot_ptc_sev(cal, names, xlab, ylab, xlims, ylims, title)
 
   return(tc)
 }
@@ -91,7 +74,7 @@ plot_ptc_com <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
 
 #' @rdname plot_tail_cal
 #' @export
-plot_ptc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.null(xlab)) xlab <- "u"
   if (is.null(ylab)) ylab <- "Severity ratio"
@@ -101,9 +84,10 @@ plot_ptc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
   if (is.data.frame(cal)) {
     tc <- ggplot(cal) + geom_line(aes(x = u, y = rat))
   } else {
+    if (!is.null(names)) names(cal) <- names
     df <- do.call(rbind, cal)
-    df$t <- rep(names(cal), sapply(cal, nrow))
-    tc <- ggplot(df) + geom_line(aes(x = u, y = rat, col = t))
+    df$mth <- rep(names(cal), sapply(cal, nrow))
+    tc <- ggplot(df) + geom_line(aes(x = u, y = rat, col = mth))
   }
 
   tc <- tc + geom_abline(aes(intercept = 0, slope = 1), linetype = "dotted") +
@@ -115,6 +99,91 @@ plot_ptc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
           legend.justification = c(0, 1),
           legend.position = c(0.01, 0.99),
           plot.margin = margin(c(5.5, 10.5, 5.5, 5.5)))
+
+  return(tc)
+}
+
+
+#' @rdname plot_tail_cal
+#' @export
+plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio", xlims = NULL, ylims = NULL, title = NULL) {
+
+  if (is.null(xlab)) xlab <- "t"
+  if (is.null(ylab)) ylab <- "Occurrence ratio"
+
+  if (is.data.frame(cal)) {
+    tc <- ggplot(cal) + geom_line(aes(x = t, y = rat))
+  } else {
+    if (!is.null(names)) names(cal) <- names
+    df <- do.call(rbind, cal)
+    df$mth <- rep(names(cal), sapply(cal, nrow))
+    tc <- ggplot(cal) + geom_line(aes(x = t, y = rat, col = mth))
+  }
+
+  tc <- tc + geom_hline(aes(yintercept = 1), linetype = "dotted") +
+    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
+    scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
+    theme_bw() +
+    theme(panel.grid = element_blank(),
+          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
+    ggtitle(title)
+
+  return(tc)
+}
+
+
+################################################################################
+##### conditional probabilistic tail calibration
+
+
+#' @rdname plot_tail_cal
+#' @export
+plot_ptc_div <- function(cal,  names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+
+  if (is.data.frame(cal)) {
+    tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
+  } else {
+    if (!is.null(names)) names(cal) <- names
+    df <- do.call(rbind, cal)
+    df$g <- rep(names(cal), sapply(cal, nrow))
+    tc <- ggplot(df) + geom_line(aes(x = t, y = d, col = g))
+  }
+
+  tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +
+    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
+    scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
+    theme_bw() +
+    theme(panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.justification = c(0, 1),
+          legend.position = c(0.01, 0.99),
+          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
+    ggtitle(title)
+
+  return(tc)
+}
+
+
+################################################################################
+##### marginal tail calibration
+
+
+#' @rdname plot_tail_cal
+#' @export
+plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
+
+  if (!is.data.frame(cal)) {
+    if (!is.null(names)) names(cal) <- names
+    resampling <- FALSE
+  }
+
+  if (ratio == "comb") {
+    tc <- plot_mtc_com(cal, resampling = resampling, title = title)
+  } else if (ratio == "sev") {
+    tc <- plot_mtc_sev(cal, resampling = resampling, title = title)
+  } else if (ratio == "occ") {
+    tc <- plot_tc_occ(cal, resampling = resampling, title = title)
+  }
 
   return(tc)
 }
@@ -162,54 +231,24 @@ plot_mtc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
 }
 
 
-#' @rdname plot_tail_cal
-#' @export
-plot_tc_occ <- function(cal, xlab = "t", ylab = "Occurrence ratio", xlims = NULL, ylims = NULL, title = NULL) {
-
-  if (is.null(xlab)) xlab <- "t"
-  if (is.null(ylab)) ylab <- "Occurrence ratio"
-
-  tc <- ggplot(cal) + geom_line(aes(x = t, y = rat)) +
-    geom_hline(aes(yintercept = 1), linetype = "dotted") +
-    scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
-    scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
-    theme_bw() +
-    theme(panel.grid = element_blank(),
-          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
-    ggtitle(title)
-
-  return(tc)
-}
+################################################################################
+##### conditional marginal tail calibration
 
 
-#' @rdname plot_tail_cal
-#' @export
-plot_ptc_div_comb <- function(cal, xlab = "t", ylab = "Miscalibration", xlims = NULL, ylims = NULL, title = NULL) {
-
-    if (is.data.frame(cal)) {
-      tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
-    } else {
-      df <- do.call(rbind, cal)
-      df$g <- rep(names(cal), sapply(cal, nrow))
-      tc <- ggplot(df) + geom_line(aes(x = t, y = d, col = g))
-    }
-
-    tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +
-      scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
-      scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
-      theme_bw() +
-      theme(panel.grid = element_blank(),
-            legend.title = element_blank(),
-            legend.justification = c(0, 1),
-            legend.position = c(0.01, 0.99),
-            plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
-      ggtitle(title)
-
-  return(tc)
-}
 
 
-sup_div <- function(z, u = seq(0, 1, 0.01)) {
-  F_x <- sapply(u, function(uu) mean(z <= uu))
-  max(abs(F_x - u))
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

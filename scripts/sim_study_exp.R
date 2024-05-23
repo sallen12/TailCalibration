@@ -97,12 +97,11 @@ com_b1 <- list("Clim." = com_cl[["B1"]], "Ideal" = com_id[["B1"]], "Extr." = com
 com_b2 <- list("Clim." = com_cl[["B2"]], "Ideal" = com_id[["B2"]], "Extr." = com_ex[["B2"]])
 com_b3 <- list("Clim." = com_cl[["B3"]], "Ideal" = com_id[["B3"]], "Extr." = com_ex[["B3"]])
 
-com_div_b1 <- com_b1 |> plot_ptc_div_comb(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
-com_div_b2 <- com_b2 |> plot_ptc_div_comb(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
-com_div_b3 <- com_b3 |> plot_ptc_div_comb(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
+com_div_b1 <- com_b1 |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
+com_div_b2 <- com_b2 |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
+com_div_b3 <- com_b3 |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
 
 
 ## combined divergence plots
 save_plots("com_div", mth = c("b1", "b2", "b3"), width = 3, height = 3)
-
 

@@ -2,26 +2,16 @@
 % Please edit documentation in R/plot_tail_cal.R
 \name{plot_tail_cal}
 \alias{plot_tail_cal}
-\alias{plot_mtc}
 \alias{plot_ptc}
 \alias{plot_ptc_com}
 \alias{plot_ptc_sev}
+\alias{plot_tc_occ}
+\alias{plot_ptc_div}
+\alias{plot_mtc}
 \alias{plot_mtc_com}
 \alias{plot_mtc_sev}
-\alias{plot_tc_occ}
-\alias{plot_ptc_div_comb}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
-plot_mtc(
-  cal,
-  names = NULL,
-  ylims = c(-0.2, 0.2),
-  xlims = NULL,
-  ylab = NULL,
-  xlab = NULL,
-  title = NULL
-)
-
 plot_ptc(
   cal,
   ratio = c("com", "sev", "occ"),
@@ -35,6 +25,7 @@ plot_ptc(
 
 plot_ptc_com(
   cal,
+  names = NULL,
   xlab = NULL,
   ylab = NULL,
   xlims = NULL,
@@ -44,10 +35,41 @@ plot_ptc_com(
 
 plot_ptc_sev(
   cal,
+  names = NULL,
   xlab = NULL,
   ylab = NULL,
   xlims = NULL,
   ylims = NULL,
+  title = NULL
+)
+
+plot_tc_occ(
+  cal,
+  names = NULL,
+  xlab = "t",
+  ylab = "Occurrence ratio",
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_ptc_div(
+  cal,
+  names = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
+  title = NULL
+)
+
+plot_mtc(
+  cal,
+  names = NULL,
+  ylims = c(-0.2, 0.2),
+  xlims = NULL,
+  ylab = NULL,
+  xlab = NULL,
   title = NULL
 )
 
@@ -68,33 +90,15 @@ plot_mtc_sev(
   ylims = NULL,
   title = NULL
 )
-
-plot_tc_occ(
-  cal,
-  xlab = "t",
-  ylab = "Occurrence ratio",
-  xlims = NULL,
-  ylims = NULL,
-  title = NULL
-)
-
-plot_ptc_div_comb(
-  cal,
-  xlab = "t",
-  ylab = "Miscalibration",
-  xlims = NULL,
-  ylims = NULL,
-  title = NULL
-)
 }
 \arguments{
 \item{cal}{data frame or list of data frames containing the data to be plotted.}
 
 \item{names}{names to be used in legend.}
 
-\item{xlims, ylims}{lower and upper limits of the axes.}
-
 \item{xlab, ylab}{axes labels}
+
+\item{xlims, ylims}{lower and upper limits of the axes.}
 
 \item{title}{plot title.}
 

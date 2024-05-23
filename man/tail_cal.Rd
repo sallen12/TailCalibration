@@ -2,23 +2,13 @@
 % Please edit documentation in R/tail_cal.R
 \name{tail_cal}
 \alias{tail_cal}
-\alias{tail_marg_cal}
 \alias{tail_prob_cal}
 \alias{tail_cal_occ}
 \alias{tail_prob_div}
+\alias{tail_marg_cal}
 \title{Tail calibration of probabilistic forecasts}
 \usage{
 tail_cal(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...)
-
-tail_marg_cal(
-  y,
-  F_x,
-  t,
-  ratio = c("comb", "sev", "occ"),
-  z = seq(0, 10, 0.1),
-  sup = FALSE,
-  ...
-)
 
 tail_prob_cal(
   y,
@@ -45,11 +35,22 @@ tail_cal_occ(
 tail_prob_div(
   y,
   F_x,
-  group,
   t,
+  group,
   ratio = c("comb", "sev", "occ"),
+  u = seq(0, 1, 0.01),
   sup = TRUE,
   qu = FALSE,
+  ...
+)
+
+tail_marg_cal(
+  y,
+  F_x,
+  t,
+  ratio = c("comb", "sev", "occ"),
+  z = seq(0, 10, 0.1),
+  sup = FALSE,
   ...
 )
 }
