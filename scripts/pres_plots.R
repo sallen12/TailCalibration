@@ -1,3 +1,5 @@
+################################################################################
+##### plot Brehmer and Strokorb mixture distributions
 
 library(texmex)
 library(ggplot2)
@@ -7,15 +9,14 @@ g_x <- dgev(x, mu = 5, sigma = 1, xi = -1/2)
 g_x[is.nan(g_x)] <- 0
 f_x <- dgev(x, mu = 3, sigma = 1.2, xi = 0)
 
-
-
 lambda <- 0.01
 f_mix <- lambda * f_x + (1 - lambda) * g_x
 
 df <- data.frame(f = c(g_x, f_mix), x = x, c = rep(c("G", "F"), each = length(x)))
 ggplot(df) + geom_ribbon(aes(x = x, ymin = 0, ymax = f, fill = c), alpha = 0.4) +
   scale_x_continuous(expand = c(0, 0),
-                     breaks = c(x[which(g_x == 0)[1]], max(x)), labels = c(expression(x[G]), expression(x[F]))) +
+                     breaks = c(x[which(g_x == 0)[1]], max(x)),
+                     labels = c(expression(x[G]), expression(x[F]))) +
   scale_y_continuous(expand = expansion(c(0, 0.5))) +
   scale_fill_manual(values = c("#F8766d", "#00BFC4"), labels = c(expression(F[lambda]), "G")) +
   theme_bw() +
@@ -30,10 +31,8 @@ ggplot(df) + geom_ribbon(aes(x = x, ymin = 0, ymax = f, fill = c), alpha = 0.4) 
 ggsave("plots/score_eg_001.png", width = 3, height = 3.2)
 
 
-
-
-
-####
+################################################################################
+##### plot non-random forecast example
 
 x <- seq(-5, 5, 0.01)
 g_x <- dnorm(x)
@@ -54,7 +53,8 @@ ggplot(df) + geom_ribbon(aes(x = x, ymin = 0, ymax = f, fill = c), alpha = 0.4) 
 ggsave("plots/cal_eg.png", width = 5, height = 3.5)
 
 
-####
+################################################################################
+##### plot unfocused forecast example
 
 x <- seq(-5, 5, 0.01)
 g_x <- dnorm(x)
@@ -65,7 +65,8 @@ df <- data.frame(f = c(g_x, f_xp, f_xm), x = x, c = rep(c("G", "F1", "F2"), each
 ggplot(df) + geom_ribbon(aes(x = x, ymin = 0, ymax = f, fill = c), alpha = 0.4) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = expansion(c(0, 0.5))) +
-  scale_fill_manual(values = c("#F8766d", "#F8766d", "#00BFC4"), labels = c(expression(F["-"]), expression(F["+"]), "G")) +
+  scale_fill_manual(values = c("#F8766d", "#F8766d", "#00BFC4"),
+                    labels = c(expression(F["-"]), expression(F["+"]), "G")) +
   theme_bw() +
   theme(panel.grid = element_blank(),
         axis.ticks = element_blank(),
@@ -77,8 +78,8 @@ ggplot(df) + geom_ribbon(aes(x = x, ymin = 0, ymax = f, fill = c), alpha = 0.4) 
 ggsave("plots/unf_eg.png", width = 5, height = 3.5)
 
 
-
-####
+################################################################################
+##### plot crps
 
 x <- seq(-5, 5, 0.01)
 F_x <- pnorm(x)
