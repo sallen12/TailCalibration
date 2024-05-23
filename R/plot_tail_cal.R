@@ -62,7 +62,8 @@ plot_ptc <- function(cal, ratio = c("com", "sev", "occ"), names = NULL,
 
 #' @rdname plot_tail_cal
 #' @export
-plot_ptc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_ptc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                         xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.null(ylab)) ylab <- "Combined ratio"
 
@@ -74,7 +75,8 @@ plot_ptc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NU
 
 #' @rdname plot_tail_cal
 #' @export
-plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                         xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.null(xlab)) xlab <- "u"
   if (is.null(ylab)) ylab <- "Severity ratio"
@@ -110,7 +112,8 @@ plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NU
 
 #' @rdname plot_tail_cal
 #' @export
-plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio", xlims = NULL, ylims = NULL, title = NULL) {
+plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio",
+                        xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.null(xlab)) xlab <- "t"
   if (is.null(ylab)) ylab <- "Occurrence ratio"
@@ -145,19 +148,20 @@ plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio"
 
 #' @rdname plot_tail_cal
 #' @export
-plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab = NULL, xlab = NULL, title = NULL) {
+plot_mtc <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                     xlims = NULL, ylims = NULL, title = NULL) {
+  ratio <- match.arg(ratio)
 
   if (!is.data.frame(cal)) {
     if (!is.null(names)) names(cal) <- names
-    resampling <- FALSE
   }
 
-  if (ratio == "comb") {
-    tc <- plot_mtc_com(cal, resampling = resampling, title = title)
+  if (ratio == "com") {
+    tc <- plot_mtc_com(cal, names, xlab, ylab, xlims, ylims, title)
   } else if (ratio == "sev") {
-    tc <- plot_mtc_sev(cal, resampling = resampling, title = title)
+    tc <- plot_mtc_sev(cal, names, xlab, ylab, xlims, ylims, title)
   } else if (ratio == "occ") {
-    tc <- plot_tc_occ(cal, resampling = resampling, title = title)
+    tc <- plot_tc_occ(cal, names, xlab, ylab, xlims, ylims, title)
   }
 
   return(tc)
@@ -166,8 +170,12 @@ plot_mtc <- function(cal, names = NULL, ylims = c(-0.2, 0.2), xlims = NULL, ylab
 
 #' @rdname plot_tail_cal
 #' @export
-plot_mtc_com <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_mtc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                         xlims = NULL, ylims = NULL, title = NULL) {
 
+  if (is.null(ylab)) ylab <- "Combined ratio"
+
+  tc <- plot_mtc_sev(cal, names, xlab, ylab, xlims, ylims, title)
 
   return(tc)
 }
@@ -175,34 +183,37 @@ plot_mtc_com <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
 
 #' @rdname plot_tail_cal
 #' @export
-plot_mtc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_mtc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                         xlims = NULL, ylims = NULL, title = NULL) {
+
+  if (is.null(xlab)) xlab <- "x"
+  if (is.null(ylab)) ylab <- "Severity ratio"
+  if (is.null(ylims)) ylims <- c(-1, 1)
 
   if (is.data.frame(cal)) {
-    df <- cal
-    mtc <- ggplot(df) + geom_line(aes(x = z, y = d))
+    tc <- ggplot(cal) + geom_line(aes(x = x, y = d))
   } else {
     df <- do.call(rbind, cal)
-    if (is.null(names)) {
-      df$names <- rep(names(cal), each = nrow(cal[[1]]))
+    if (!is.null(names)) {
+      df$mth <- rep(names, sapply(cal, nrow))
     } else {
-      df$names <- rep(names, each = nrow(cal[[1]]))
+      df$mth <- rep(names(cal), sapply(cal, nrow))
     }
-    mtc <- ggplot(df) + geom_line(aes(x = z, y = d, col = as.factor(names)))
+    tc <- ggplot(df) + geom_line(aes(x = x, y = d, col = mth))
   }
 
-  if (is.null(ylab)) ylab <- expression("E[" ~ F[t] ~ "(y)] - Q(Y - t ≤ y | Y > t)")
-  if (is.null(xlab)) xlab <- "y"
-
-  mtc <- mtc + geom_hline(aes(yintercept = 0), lty = "dotted") +
+  tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +
     scale_x_continuous(name = xlab, limits = xlims, expand = c(0, 0)) +
     scale_y_continuous(name = ylab, limits = ylims, expand = c(0, 0)) +
     theme_bw() +
     theme(panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.position = "bottom") +
+          legend.justification = c(0, 1),
+          legend.position = c(0.01, 0.99),
+          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
     ggtitle(title)
 
-  return(mtc)
+  return(tc)
 }
 
 
@@ -212,7 +223,8 @@ plot_mtc_sev <- function(cal, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NU
 
 #' @rdname plot_tail_cal
 #' @export
-plot_tc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_tc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
+                        xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.data.frame(cal)) {
     tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
@@ -240,14 +252,4 @@ plot_tc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NUL
 
   return(tc)
 }
-
-
-
-
-
-
-
-
-
-
 

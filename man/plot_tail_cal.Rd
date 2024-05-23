@@ -56,15 +56,16 @@ plot_tc_occ(
 plot_mtc(
   cal,
   names = NULL,
-  ylims = c(-0.2, 0.2),
-  xlims = NULL,
-  ylab = NULL,
   xlab = NULL,
+  ylab = NULL,
+  xlims = NULL,
+  ylims = NULL,
   title = NULL
 )
 
 plot_mtc_com(
   cal,
+  names = NULL,
   xlab = NULL,
   ylab = NULL,
   xlims = NULL,
@@ -74,6 +75,7 @@ plot_mtc_com(
 
 plot_mtc_sev(
   cal,
+  names = NULL,
   xlab = NULL,
   ylab = NULL,
   xlims = NULL,
