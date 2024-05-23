@@ -4,16 +4,28 @@
 \alias{cpit_sample}
 \title{Conditional PIT values for simulated forecast distributions}
 \usage{
-cpit_sample(y, dat, a = -Inf, b = Inf, bw = NULL, return_na = TRUE)
+cpit_sample(
+  y,
+  dat,
+  a = -Inf,
+  b = Inf,
+  kde = FALSE,
+  bw = NULL,
+  return_na = TRUE
+)
 }
 \arguments{
 \item{y}{vector of observations.}
 
 \item{dat}{matrix of simulation draws from forecast distribution.}
 
-\item{a, b}{numeric; lower and upper threshold defining the interval of outcomes that are of interest.}
+\item{a, b}{lower and upper thresholds defining the interval of outcomes that are of interest.}
 
-\item{bw}{vector of bandwidth parameters to use in kernel density estimation.}
+\item{kde}{logical specifying whether or not to smooth the sample using kernel density estimation (kde).}
+
+\item{bw}{vector of bandwidth parameters to use in kde.}
+
+\item{return_na}{logical specifying whether or not to return NAs for outcomes not in the interval of interest.}
 }
 \value{
 vector of conditional PIT values.
@@ -23,6 +35,23 @@ Calculate conditional probability integral transform (PIT) values for probabilis
 forecasts in the form of samples or ensembles.
 }
 \details{
+The calibration of probabilistic forecasts is typically assessed by checking whether or not
+probability integral transform (PIT) values resemble a sample from a standard uniform
+distribution. Conditional PIT (cPIT) values allow forecast calibration to be assessed whilst
+focusing on a particular range of outcomes [\code{a}, \code{b}]. This is achieved by restricting attention
+to the observed values \code{y} that are between \code{a} and \code{b}, and calculating the PIT values
+corresponding to the conditional distribution given that the observation is in this range
+(see references for details).
+
+The arguments \code{a} and \code{b} are numerical values corresponding to the lower and upper bound of
+the interval of interest. If we wish to assess forecast calibration when predicting outcomes
+that exceed a threshold \code{t}, then we can set \code{a = t} and \code{b = Inf}.
+
+By default, \code{NA} is returned for the entries of \code{y} that are not in the specified range, with
+the cPIT value corresponding to `y` returned otherwise. The default output of the functions is
+therefore a numeric vector of the same length as \code{y}. If \code{return_na = FALSE}, these \code{NA}'s are
+not returned, and the output is instead a numeric containing just the valid cPIT values.
+
 \code{cpit_sample()} calculates conditional PIT values for forecast distributions
 in the form of an ensemble or predictive sample. See the documentation for
 \code{\link{cpit_param}} for details on conditional PIT histograms.
@@ -31,24 +60,31 @@ Calculating conditional PIT values requires the conditional predictive distribut
 given that the outcome is in the range [\code{a}, \code{b}]. This is achieved here
 by first smoothing the predictive sample using kernel density estimation.
 
-The argument \code{bw} specifies the bandwidth parameter to use within kernel
-density estimation. If this is not provided, then it is selected using the core
-function \code{\link{bw.nrd}}.
-
+\code{\link{cpit_param()}} allows cPIT values to be calculated for a range of
+parametric distributions. \code{cpit_sample()} provides functionality to compute
+these values for forecasts in the form of an ensemble or sample from a predictive distribution.
 The argument \code{dat} contains the sample from the forecast distribution. This
 should be a matrix with the same number of rows as the length of \code{y}, with
 the columns representing different samples or ensemble members.
+
+If the argument \code{kde = TRUE}, the sample will be smoothed using Gaussian kernel density
+estimation prior to calculating the cPIT values; the default is \code{kde = FALSE}. The argument
+\code{bw} specifies the bandwidth parameter to use within kernel density estimation.
+If this is not provided, then it is selected using the core function \code{\link{bw.nrd}}.
 }
 \examples{
-mu <- rnorm(20, mean = 0, sd = 5)
-y <- rnorm(20, mean = mu, sd = 1)
-dat <- matrix(rnorm(2000, mean = mu, sd = 1), nrow = 20)
+mu <- rnorm(10, mean = 0, sd = 5)
+y <- rnorm(10, mean = mu, sd = 1)
+dat <- matrix(rnorm(1000, mean = mu, sd = 1), nrow = 10)
 
 cpit_sample(y = y, dat = dat)
+cpit_sample(y = y, dat = dat, kde = TRUE)
 cpit_norm(y = y, mean = mu, sd = 1)
 
 cpit_sample(y = y, dat = dat, a = 0)
+cpit_sample(y = y, dat = dat, kde = TRUE, a = 0)
 cpit_norm(y = y, mean = mu, sd = 1, a = 0)
+
 
 }
 \references{
@@ -65,6 +101,9 @@ Allen, S., Bhend, J., Martius, O. and Ziegel, J (2023):
 `Weighted verification tools to evaluate univariate and multivariate probabilistic forecasts for high-impact weather events'.
 \emph{Weather and Forecasting} 38, 499–516.
 \doi{10.1175/WAF-D-22-0161.1}
+}
+\seealso{
+cpit_param
 }
 \author{
 Sam Allen
