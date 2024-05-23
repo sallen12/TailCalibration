@@ -11,7 +11,7 @@ set.seed(631)
 save_plots <- function(prefix, mth = c("cl", "id", "uf", "sr"), width = 3.5, height = 3.4) {
   for (m in mth) {
     plotname <- paste0(prefix, "_", m)
-    filename <- paste0("plots/ptc_", prefix, "_1e6_", m, "_norm.png")
+    filename <- paste0("plots/sim_norm_", prefix, "_1e6_", m, "_norm.png")
     ggsave(filename, plot = get(plotname), width = width, height = height)
   }
 }
@@ -20,7 +20,7 @@ save_plots <- function(prefix, mth = c("cl", "id", "uf", "sr"), width = 3.5, hei
 ################################################################################
 ### simulate data
 
-N <- 1e5
+N <- 1e6
 
 mu <- rnorm(N)
 y <- rnorm(N, mu)
@@ -43,13 +43,11 @@ occ_id <- tail_prob_cal(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = mu)
 occ_uf <- tail_prob_cal(y, F_uf, t = t_vec, ratio = "occ", qu = T, m = mu, ta = tau)
 occ_sr <- tail_prob_cal(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = -mu)
 
-occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2))
-occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2))
-occ_uf <- occ_uf |> plot_ptc(ratio = "occ", ylims = c(0, 2))
-occ_sr <- occ_sr |> plot_ptc(ratio = "occ", ylims = c(0, 2))
+occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_uf <- occ_uf |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_sr <- occ_sr |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
 
-
-## unconditional exceedance ratio plots
 save_plots("occ")
 
 
@@ -61,13 +59,11 @@ sev_id <- tail_prob_cal(y, pnorm, t = rd_vec, ratio = "sev", mean = mu)
 sev_uf <- tail_prob_cal(y, F_uf, t = rd_vec, ratio = "sev", m = mu, ta = tau)
 sev_sr <- tail_prob_cal(y, pnorm, t = rd_vec, ratio = "sev", mean = -mu)
 
-sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names)
-sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names)
-sev_uf <- sev_uf |> plot_ptc(ratio = "sev", names = names)
-sev_sr <- sev_sr |> plot_ptc(ratio = "sev", names = names)
+sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, title = "")
+sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, title = "")
+sev_uf <- sev_uf |> plot_ptc(ratio = "sev", names = names, title = "")
+sev_sr <- sev_sr |> plot_ptc(ratio = "sev", names = names, title = "")
 
-
-## cpit reliability diagrams
 save_plots("sev")
 
 
@@ -84,7 +80,5 @@ com_id <- com_id |> plot_ptc(ratio = "com", names = names, title = "Ideal")
 com_uf <- com_uf |> plot_ptc(ratio = "com", names = names, title = "Unfocused")
 com_sr <- com_sr |> plot_ptc(ratio = "com", names = names, title = "Sign-reversed")
 
-
-## combined diagnostic plot
 save_plots("com")
 

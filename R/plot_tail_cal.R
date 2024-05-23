@@ -84,9 +84,12 @@ plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NU
   if (is.data.frame(cal)) {
     tc <- ggplot(cal) + geom_line(aes(x = u, y = rat))
   } else {
-    if (!is.null(names)) names(cal) <- names
     df <- do.call(rbind, cal)
-    df$mth <- rep(names(cal), sapply(cal, nrow))
+    if (!is.null(names)) {
+       df$mth <- rep(names, sapply(cal, nrow))
+    } else {
+      df$mth <- rep(names(cal), sapply(cal, nrow))
+    }
     tc <- ggplot(df) + geom_line(aes(x = u, y = rat, col = mth))
   }
 
@@ -98,7 +101,8 @@ plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NU
           legend.title = element_blank(),
           legend.justification = c(0, 1),
           legend.position = c(0.01, 0.99),
-          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5)))
+          plot.margin = margin(c(5.5, 10.5, 5.5, 5.5))) +
+    ggtitle(title)
 
   return(tc)
 }
@@ -114,9 +118,12 @@ plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio"
   if (is.data.frame(cal)) {
     tc <- ggplot(cal) + geom_line(aes(x = t, y = rat))
   } else {
-    if (!is.null(names)) names(cal) <- names
     df <- do.call(rbind, cal)
-    df$mth <- rep(names(cal), sapply(cal, nrow))
+    if (!is.null(names)) {
+      df$mth <- rep(names, sapply(cal, nrow))
+    } else {
+      df$mth <- rep(names(cal), sapply(cal, nrow))
+    }
     tc <- ggplot(cal) + geom_line(aes(x = t, y = rat, col = mth))
   }
 
@@ -138,14 +145,18 @@ plot_tc_occ <- function(cal, names = NULL, xlab = "t", ylab = "Occurrence ratio"
 
 #' @rdname plot_tail_cal
 #' @export
-plot_ptc_div <- function(cal,  names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
+plot_ptc_div <- function(cal, names = NULL, xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
 
   if (is.data.frame(cal)) {
     tc <- ggplot(cal) + geom_line(aes(x = t, y = d))
   } else {
-    if (!is.null(names)) names(cal) <- names
     df <- do.call(rbind, cal)
-    df$g <- rep(names(cal), sapply(cal, nrow))
+    if (!is.null(names)) {
+      if (is.numeric(names)) names <- as.factor(names)
+      df$g <- rep(names, sapply(cal, nrow))
+    } else {
+      df$g <- rep(names(cal), sapply(cal, nrow))
+    }
     tc <- ggplot(df) + geom_line(aes(x = t, y = d, col = g))
   }
 

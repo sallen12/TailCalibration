@@ -1,122 +1,181 @@
 ################################################################################
-### set up
+###### examples
 
 library(TailCalibration)
-library(ggplot2)
 library(evmix)
+library(ggplot2)
 
-set.seed(412149)
+set.seed(298301)
 
 
 ################################################################################
-### equiprobable forecaster
+###### Example 14: Non-random
 
-### plot
-x <- seq(-4, 4, 0.01)
-G_x <- pnorm(x, mean = 0, sd = 0.5)
-H_x <- pnorm(x, mean = 0, sd = 2)
-Fbar_x <- (G_x + H_x)/2
+mu2 <- 0.5
+sig2 <- 0.9
+th <- mu2 / (1 - sig2)
 
-F1_x <- c(G_x[x <= 0], Fbar_x[x > 0])
-F2_x <- c(H_x[x <= 0], Fbar_x[x > 0])
+F_x <- function(x, lower.tail = TRUE) {
+  Fcst <- pgpd(x, 0, 1, 1/4)
+  Fcst[x < th] <- pgpd(x[x < th], mu2, sig2, 1/4)
+  if (lower.tail) {
+    return(Fcst)
+  } else {
+    return(1 - Fcst)
+  }
+}
 
-## unconditional distributions
-df <- data.frame(x = x,
-                 F_x = c(F1_x, F2_x, G_x, H_x),
-                 mth = rep(c("F[1]", "F[2]", "Q(Y < y | F = F[1])", "Q(Y < y | F = F[2])"), each = length(x)))
-ggplot(df) + geom_line(aes(x = x, y = F_x, col = mth, lty = mth)) +
-  scale_color_manual(values = c("red", "blue", "red", "blue")) +
-  scale_linetype_manual(values = c(1, 1, 2, 2)) +
-  theme_bw() +
-  theme(panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.justification = c(1, 0),
-        legend.position = c(0.99, 0.01))
+F_inv <- function(u) {
+  u_th <- pgpd(th, 0, 1, 1/4)
+  q <- qgpd(u, 0, 1, 1/4)
+  if (any(u < u_th)) {
+    q[u < u_th] <- qgpd(u[u < u_th], mu2, sig2, 1/4)
+  }
+  return(q)
+}
 
+t <- seq(0, 10, 0.01)
+u <- seq(0.01, 0.99, 0.01)
 
-## excess distributions
-t <- 1
-Fbar_t <- (Fbar_x[x > t] - Fbar_x[x == t])/(1 - Fbar_x[x == t])
-Ft_bar <- (G_x[x > t] - G_x[x == t])/(1 - G_x[x == t])/2 + (H_x[x > t] - H_x[x == t])/(1 - H_x[x == t])/2
+denom <- F_x(t, lower.tail = FALSE)
 
-df <- data.frame(x = x[x > t],
-                 F_x = c(Fbar_t, Ft_bar),
-                 mth = rep(c("Fbar_t", "Ft_bar"), each = sum(x > t)))
-ggplot(df) + geom_line(aes(x = x, y = F_x, col = mth)) +
-  theme_bw() +
-  theme(panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.justification = c(1, 0),
-        legend.position = c(0.99, 0.01))
+F_t_inv <- function(u, t) F_inv(u * (1 - F_x(t)) + F_x(t)) - t
+numer <- sapply(u, function(uu) pgpd(t + F_t_inv(uu, t), 0, 1, 1/4) - pgpd(t, 0, 1, 1/4))
+
+ind <- c(1, 201, 401, 601)
 
 
+##### occurrence ratio
+rat <- pgpd(t, 0, 1, 1/4, lower.tail = FALSE) / denom
 
-### sample
+df <- data.frame(t = t, r = rat)
+plot_ptc(df, ratio = "occ", ylims = c(0, 2))
+ggsave("plots/ex_non_occ.png", width = 3.2, height = 3)
+
+
+##### severity ratio
+rat <- numer[ind, ] / pgpd(t[ind], 0, 1, 1/4, lower.tail = FALSE)
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+names(cal) <- t[ind]
+
+plot_ptc(cal, ratio = "sev")
+ggsave("plots/ex_non_sev.png", width = 3.2, height = 3)
+
+
+##### combined ratio
+rat <- numer[ind, ]/denom[ind]
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+names(cal) <- t[ind]
+
+plot_ptc(cal)
+ggsave("plots/ex_non_com.png", width = 3.2, height = 3)
+
+
+################################################################################
+###### Example 15: Uniform unfocused
+
+u <- seq(0, 1, 0.01)
+t <- seq(-1, 0.99, 0.01)
+
+E_F <- function(y) {
+  F_y <- numeric(length(y))
+  F_y[y <= -1] <- 0
+  F_y[y >= 2] <- 1
+  ind <- y > -1 & y <= 1
+  F_y[ind] <- (y[ind] + 1)/4
+  ind <- y > 1 & y < 2
+  F_y[ind] <- (y[ind] + 2)/4
+  return(F_y)
+}
+Q_t <- function(u, t) {
+  if (t <= -1) {
+    u
+  } else if (t > -1 & t <= 0) {
+    (pmin(2*u, 1) + pmax(u*(1 - t) + t, 0))/2
+  } else if (t > 0) {
+    (pmin(u*(2 - t)/(1 - t), 1) + u)/2
+  } else {
+    NA
+  }
+}
+
+denom <- 1 - E_F(t)
+G_t <- pmax(pmin(1 - t, 1), 0)
+numer <- t(sapply(t, Q_t, u = u))
+
+ind <- c(1, 51, 101, 196)
+
+
+##### occurrence ratio
+rat <- G_t / denom
+
+df <- data.frame(t = t, r = rat)
+plot_ptc(df, ratio = "occ", ylims = c(0, 2))
+ggsave("plots/ex_uuf_occ.png", width = 3.2, height = 3)
+
+
+##### severity ratio
+rat <- numer[ind, ]
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+
+plot_ptc(cal, ratio = "sev", names = as.factor(t[ind]))
+ggsave("plots/ex_uuf_sev.png", width = 3.2, height = 3)
+
+
+##### combined ratio
+rat <- G_t[ind] * numer[ind, ]/denom[ind]
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+
+plot_ptc(cal, ylims = c(0, 1.4), names = as.factor(t[ind]))
+ggsave("plots/ex_uuf_com.png", width = 3.2, height = 3)
+
+
+################################################################################
+###### Example 17: Optimistic
 
 N <- 1e6
+gamma <- 1/4
 
-F1 <- sample(c(T, F), size = N, replace = T)
-y <- rnorm(N, mean = 0, sd = 0.5)
-y[!F1] <- rnorm(sum(!F1), mean = 0, sd = 2)
+delta <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
+u <- runif(N)
+x1 <- qexp(u, delta)
+x2 <- qexp(u, delta/2)
+L <- rgpd(N, xi = gamma/2)
 
-F1_x <- function(x, sig1, sig2) {
-  if (x <= 0) {
-    pnorm(x, mean = 0, sd = sig1)
-  } else {
-    (pnorm(x, mean = 0, sd = sig1) + pnorm(x, mean = 0, sd = sig2))/2
-  }
-}
+y <- pmax(pmin(x1, x2), pmin(pmax(x1, x2), L))
 
-F2_x <- function(x, sig1, sig2) {
-  if (x <= 0) {
-    pnorm(x, mean = 0, sd = sig2)
-  } else {
-    (pnorm(x, mean = 0, sd = sig1) + pnorm(x, mean = 0, sd = sig2))/2
-  }
-}
+rd_q <- c(0.9, 0.95, 0.99, 0.999)
+rd_vec <- c(0, quantile(y, rd_q))
+names <- c(0, rd_q)
 
-F_x <- function(x, sig1, sig2, F1) {
-  out <- numeric(length(F1))
-  out[F1] <- F1_x(x, sig1, sig2)
-  out[!F1] <- F2_x(x, sig1, sig2)
-  return(out)
-}
-
-z_vec <- seq(0, 5, 0.01)
-t_vec <- 1:5
+t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 
 
-### marginal tail calibration
+##### unconditional diagnostic plots
 
-mtc <- tail_marg_cal(y, F_x, t = t_vec, z = z_vec, sig1 = 0.5, sig2 = 2, F1 = F1)
-plot_mtc(mtc)
+occ <- tail_prob_cal(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
+sev <- tail_prob_cal(y, pgpd, t = rd_vec, ratio = "sev", qu = T, xi = gamma)
+com <- tail_prob_cal(y, pgpd, t = rd_vec, qu = T, xi = gamma)
 
+occ <- occ |> plot_ptc(ratio = "occ", ylims = c(0, 2))
+sev <- sev |> plot_ptc(ratio = "sev", names = names)
+com <- com |> plot_ptc(names = names, ylims = c(0, 1.3), title = "")
 
-### probabilistic tail calibration
-
-ptc <- tail_prob_cal(y, F_x, t = t_vec, sig1 = 0.5, sig2 = 2, F1 = F1)
-plot_mtc(mtc)
-
-
-################################################################################
-### Correct regime, wrong shape
-
-N <- 1e8
-
-y <- rgpd(N, sigmau = 1, xi = 0.5)
-
-z_vec <- seq(0, 10, 1)
-a_vec <- c(0.99, 0.999, 0.9999, 0.99999)
-t_vec <- c(0, quantile(y, a_vec))
-
-### marginal tail calibration
-
-mtc <- tail_marg_cal(y, pgpd, t = t_vec, z = z_vec, sigmau = 2, xi = 0.5)
-plot_mtc(mtc, names = c(0, a_vec), title = paste("scale =", 2, "shape =", 0.5))
+ggsave(plot = com, "plots/ex_opt_com_1e6.png", width = 3.2, height = 3)
 
 
-### probabilistic tail calibration
+##### conditional combined diagnostic plot
 
-ptc <- tail_prob_cal(y, pgpd, t = t_vec, sigmau = 2, xi = 0.7)
-plot_ptc(ptc, names = c(0, a_vec), title = paste("scale =", 2, "shape =", 0.7))
+n_grp <- 3
+group <- numeric(length(delta))
+for (i in 1:n_grp) group[delta >= quantile(delta, (i - 1)/n_grp)] <- paste0("B", i)
+
+com_div <- tail_prob_div(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
+
+com_div[["B1"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
+ggsave("plots/ex_opt_com_div_1e6_B1.png", width = 3, height = 3)
+com_div[["B2"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
+ggsave("plots/ex_opt_com_div_1e6_B2.png", width = 3, height = 3)
+com_div[["B3"]] |> plot_ptc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
+ggsave("plots/ex_opt_com_div_1e6_B3.png", width = 3, height = 3)
 
