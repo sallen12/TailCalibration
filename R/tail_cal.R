@@ -5,7 +5,7 @@
 #' @param y vector of realized values.
 #' @param F_x forecast distribution function to be evaluated.
 #' @param t threshold(s) at which to evaluate tail calibration.
-#' @param ratio ratio to return; one of 'comb', 'sev', 'occ'.
+#' @param ratio ratio to return; one of 'com', 'sev', 'occ'.
 #' @param z exceedances at which to calculate marginal tail calibration.
 #' @param type string denoting whether to assess marginal or probabilistic tail calibration.
 #' @param sup logical specifying whether to take the supremum of the differences in marginal tail calibration.
@@ -53,7 +53,7 @@ tail_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...) {
 
 #' @rdname tail_cal
 #' @export
-tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0, 1, 0.01),
+tail_prob_cal <- function(y, F_x, t, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
                           sup = FALSE, qu = FALSE, subset = NULL, ...) {
   check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
   ratio <- match.arg(ratio)
@@ -61,7 +61,7 @@ tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0,
   if (is.null(subset)) subset <- rep(TRUE, length(y))
   n <- sum(subset)
 
-  if (ratio == "comb") {
+  if (ratio == "com") {
     R <- lapply(t, function(tt) {
       exc_p <- 1 - F_x(tt, ...)
       if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
@@ -82,7 +82,7 @@ tail_prob_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), u = seq(0,
   }
 
   if (sup) {
-    if (ratio %in% c("comb", "sev")) {
+    if (ratio %in% c("com", "sev")) {
       R <- sapply(R, function(r) max(abs(r$rat - r$u)))
     } else {
       R <- abs(R$rat - 1)
@@ -126,7 +126,7 @@ tail_cal_occ <- function(y, F_x, t, type = c("all", "ratio", "dif"), qu = FALSE,
 
 #' @rdname tail_cal
 #' @export
-tail_prob_div <- function(y, F_x, t, group, ratio = c("comb", "sev", "occ"), u = seq(0, 1, 0.01), sup = TRUE, qu = FALSE, ...) {
+tail_prob_div <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01), sup = TRUE, qu = FALSE, ...) {
   check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
   ratio <- match.arg(ratio)
 
@@ -154,10 +154,10 @@ tail_prob_div <- function(y, F_x, t, group, ratio = c("comb", "sev", "occ"), u =
 
 #' @rdname tail_cal
 #' @export
-tail_marg_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), z = seq(0, 10, 0.1), sup = FALSE, ...) {
+tail_marg_cal <- function(y, F_x, t, ratio = c("com", "sev", "occ"), z = seq(0, 10, 0.1), sup = FALSE, ...) {
   check_inputs(y = y, F_x = F_x, t = t, z = z, type = "marg", ...)
 
-  if (ratio == "comb") {
+  if (ratio == "com") {
     D <- lapply(t, function(tt) {
       F_t <- F_x(tt, ...)
       exc_p <- 1 - mean(F_tt)
@@ -187,7 +187,7 @@ tail_marg_cal <- function(y, F_x, t, ratio = c("comb", "sev", "occ"), z = seq(0,
   }
 
   if (sup) {
-    if (ratio %in% c("comb", "sev")) {
+    if (ratio %in% c("com", "sev")) {
       D <- sapply(D, function(d) max(abs(d$dif)))
     } else {
       D <- max(abs(D$dif))

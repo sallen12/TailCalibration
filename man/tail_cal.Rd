@@ -14,7 +14,7 @@ tail_prob_cal(
   y,
   F_x,
   t,
-  ratio = c("comb", "sev", "occ"),
+  ratio = c("com", "sev", "occ"),
   u = seq(0, 1, 0.01),
   sup = FALSE,
   qu = FALSE,
@@ -37,7 +37,7 @@ tail_prob_div(
   F_x,
   t,
   group,
-  ratio = c("comb", "sev", "occ"),
+  ratio = c("com", "sev", "occ"),
   u = seq(0, 1, 0.01),
   sup = TRUE,
   qu = FALSE,
@@ -48,7 +48,7 @@ tail_marg_cal(
   y,
   F_x,
   t,
-  ratio = c("comb", "sev", "occ"),
+  ratio = c("com", "sev", "occ"),
   z = seq(0, 10, 0.1),
   sup = FALSE,
   ...
@@ -67,7 +67,7 @@ tail_marg_cal(
 
 \item{...}{additional arguments to F_x.}
 
-\item{ratio}{ratio to return; one of 'comb', 'sev', 'occ'.}
+\item{ratio}{ratio to return; one of 'com', 'sev', 'occ'.}
 
 \item{sup}{logical specifying whether to take the supremum of the differences in marginal tail calibration.}
 }
