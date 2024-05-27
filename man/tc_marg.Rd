@@ -180,7 +180,7 @@ mu1 <- rnorm(mu + 1, sd = 0.5)
 mu2 <- mu
 lo <- mu > 1
 
-cpit <- tc_marg(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
+mtc <- tc_marg(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
 
 
 }

@@ -139,7 +139,7 @@
 #' mu2 <- mu
 #' lo <- mu > 1
 #'
-#' cpit <- tc_marg(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
+#' mtc <- tc_marg(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
 #'
 #'
 #' @name tc_marg
@@ -159,49 +159,73 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
   n <- sum(subset)
 
   if (ratio == 'com') {
-    D <- lapply(t, function(tt) {
+    R <- lapply(t, function(tt) {
       F_t <- F_x(tt, ...)
-      exc_p <- 1 - mean(F_tt)
-      ind <- y > tt
-      dif <- sapply(z, function(zz) {
-        cprob <- mean(y > tt & y <= (tt + zz))
-        Fhat_t <- (F_x(zz + tt, ...) - F_t)/(1 - F_t)
-        Fhat_t <- mean(Fhat_t[ind])
-        (cprob/exc_p) - Fhat_t
-      })
-      data.frame(x = z, dif = dif)
+      exc_p <- 1 - F_t
+      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
+      ind <- (y > tt) & subset
+      if (tt == -Inf) {
+        dif <- sapply(u, function(uu) {
+          cprob <- mean(y[subset] <= uu)
+          Fhat_t <- F_x(uu, ...)
+          Fhat_t <- mean(Fhat_t[ind])
+          (cprob/exc_p) - Fhat_t
+        })
+      } else {
+        dif <- sapply(u, function(uu) {
+          cprob <- mean(y[subset] > tt & y[subset] <= (tt + uu))
+          Fhat_t <- (F_x(uu + tt, ...) - F_t)/(1 - F_t)
+          Fhat_t <- mean(Fhat_t[ind])
+          (cprob/exc_p) - Fhat_t
+        })
+      }
+      data.frame(u = u, rat = dif)
     })
   } else if (ratio == 'sev') {
-    D <- lapply(t, function(tt) {
+    R <- lapply(t, function(tt) {
       F_t <- F_x(tt, ...)
-      ind <- y > tt
-      dif <- sapply(z, function(zz) {
-        cprob <- mean(y[ind] <= (tt + zz))
-        Fhat_t <- (F_x(zz + tt, ...) - F_t)/(1 - F_t)
-        Fhat_t <- mean(Fhat_t[ind])
-        cprob - Fhat_t
-      })
-      data.frame(x = z, dif = dif)
+      ind <- (y > tt) & subset
+      if (tt == -Inf) {
+        dif <- sapply(u, function(uu) {
+          cprob <- mean(y[ind] <= uu)
+          Fhat_t <- F_x(uu, ...)
+          Fhat_t <- mean(Fhat_t[ind])
+          cprob - Fhat_t
+        })
+      } else {
+        dif <- sapply(u, function(uu) {
+          cprob <- mean(y[ind] <= (tt + uu))
+          Fhat_t <- (F_x(uu + tt, ...) - F_t)/(1 - F_t)
+          Fhat_t <- mean(Fhat_t[ind])
+          cprob - Fhat_t
+        })
+      }
+      data.frame(u = u, rat = dif)
     })
   } else if (ratio == 'occ') {
-    D <- tail_cal_occ(y, F_x, t, type = 'dif', ...)
+    G_t <- sapply(t, function(tt) mean(y[subset] > tt))
+    F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
+    if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
+    if (qu) t <- 1 - G_t
+    R <- G_t/F_t
+    if (length(t) > 1) R <- data.frame(t = t, rat = R)
   }
+
+  if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
 
   if (sup) {
     if (ratio %in% c('com', 'sev')) {
-      D <- sapply(D, function(d) max(abs(d$dif)))
+      R <- sapply(R, function(r) max(abs(r$rat)))
     } else {
-      D <- max(abs(D$dif))
+      R <- abs(R$rat - 1)
     }
+    if (length(t) > 1) R <- data.frame(t = t, rat = R)
+  } else if (length(t) == 1) {
+    R <- R[[1]]
+  } else if (ratio %in% c('com', 'sev')) {
+    names(R) <- round(t, 2)
   }
 
-  if (length(t) == 1) {
-    D <- D[[1]]
-  } else if (length(y) == 1) {
-    D <- as.data.frame(t(sapply(seq_along(t), function(i) D[[i]][1, ])))
-  } else {
-    names(D) <- round(t, 2)
-  }
-  return(D)
+  return(R)
 }
 

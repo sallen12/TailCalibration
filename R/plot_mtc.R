@@ -32,13 +32,13 @@
 #' plot_mtc_com(com[[1]])
 #' plot_mtc(com, names = c('t1', 't2', 't3', 't4'))
 #'
-#' sev <- tail_cal(y, F_x, t = t, ratio = 'sev', mean = mu)
+#' sev <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'sev', u = seq(0, 3, 0.01), mean = mu)
 #' plot_mtc(sev, ratio = 'sev')
 #' plot_mtc_sev(sev)
 #'
-#' occ <- tail_cal(y, F_x, t = t, ratio = 'occ', mean = mu)
+#' occ <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'occ', mean = mu)
 #' plot_mtc(occ, ratio = 'occ', ylims = c(0, 2))
-#' plot_tc_occ(occ)
+#' plot_tc_occ(occ, ylims = c(0, 2))
 #'
 #'
 #' @import ggplot2
@@ -48,8 +48,8 @@ NULL
 
 #' @rdname plot_mtc
 #' @export
-plot_mtc <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
-                     xlims = NULL, ylims = NULL, title = NULL) {
+plot_mtc <- function(cal, ratio = c("com", "sev", "occ"), names = NULL,
+                     xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
   ratio <- match.arg(ratio)
 
   if (!is.data.frame(cal) && !is.null(names)) names(cal) <- names
@@ -84,12 +84,12 @@ plot_mtc_com <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
 plot_mtc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
                          xlims = NULL, ylims = NULL, title = NULL) {
 
-  if (is.null(xlab)) xlab <- "x"
+  if (is.null(xlab)) xlab <- "u"
   if (is.null(ylab)) ylab <- "Severity ratio"
   if (is.null(ylims)) ylims <- c(-1, 1)
 
   if (is.data.frame(cal)) {
-    tc <- ggplot(cal) + geom_line(aes(x = x, y = d))
+    tc <- ggplot(cal) + geom_line(aes(x = u, y = rat))
   } else {
     df <- do.call(rbind, cal)
     if (!is.null(names)) {
@@ -97,7 +97,7 @@ plot_mtc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
     } else {
       df$mth <- rep(names(cal), sapply(cal, nrow))
     }
-    tc <- ggplot(df) + geom_line(aes(x = x, y = d, col = mth))
+    tc <- ggplot(df) + geom_line(aes(x = u, y = rat, col = mth))
   }
 
   tc <- tc + geom_hline(aes(yintercept = 0), lty = "dotted") +

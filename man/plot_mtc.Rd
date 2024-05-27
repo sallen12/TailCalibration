@@ -8,6 +8,7 @@
 \usage{
 plot_mtc(
   cal,
+  ratio = c("com", "sev", "occ"),
   names = NULL,
   xlab = NULL,
   ylab = NULL,
@@ -38,6 +39,8 @@ plot_mtc_sev(
 }
 \arguments{
 \item{cal}{data frame or list of data frames containing the data to be plotted.}
+
+\item{ratio}{ratio to plot; one of 'com', 'sev', 'occ'.}
 
 \item{names}{names to be used in legend, if \code{cal} is a list.}
 
@@ -118,13 +121,13 @@ plot_mtc(com[[1]])
 plot_mtc_com(com[[1]])
 plot_mtc(com, names = c('t1', 't2', 't3', 't4'))
 
-sev <- tail_cal(y, F_x, t = t, ratio = 'sev', mean = mu)
+sev <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'sev', u = seq(0, 3, 0.01), mean = mu)
 plot_mtc(sev, ratio = 'sev')
 plot_mtc_sev(sev)
 
-occ <- tail_cal(y, F_x, t = t, ratio = 'occ', mean = mu)
+occ <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'occ', mean = mu)
 plot_mtc(occ, ratio = 'occ', ylims = c(0, 2))
-plot_tc_occ(occ)
+plot_tc_occ(occ, ylims = c(0, 2))
 
 
 }
