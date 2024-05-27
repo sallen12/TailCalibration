@@ -38,10 +38,10 @@ t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 ################################################################################
 ### occurrence ratio
 
-occ_cl <- tail_prob_cal(y, pnorm, t = t_vec, ratio = "occ", qu = T, sd = sqrt(2))
-occ_id <- tail_prob_cal(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = mu)
-occ_uf <- tail_prob_cal(y, F_uf, t = t_vec, ratio = "occ", qu = T, m = mu, ta = tau)
-occ_sr <- tail_prob_cal(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = -mu)
+occ_cl <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, sd = sqrt(2))
+occ_id <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = mu)
+occ_uf <- tc_prob(y, F_uf, t = t_vec, ratio = "occ", qu = T, m = mu, ta = tau)
+occ_sr <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = -mu)
 
 occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
 occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
@@ -54,10 +54,10 @@ save_plots("occ")
 ################################################################################
 ### severity ratio
 
-sev_cl <- tail_prob_cal(y, pnorm, t = rd_vec, ratio = "sev", sd = sqrt(2))
-sev_id <- tail_prob_cal(y, pnorm, t = rd_vec, ratio = "sev", mean = mu)
-sev_uf <- tail_prob_cal(y, F_uf, t = rd_vec, ratio = "sev", m = mu, ta = tau)
-sev_sr <- tail_prob_cal(y, pnorm, t = rd_vec, ratio = "sev", mean = -mu)
+sev_cl <- tc_prob(y, pnorm, t = rd_vec, ratio = "sev", sd = sqrt(2))
+sev_id <- tc_prob(y, pnorm, t = rd_vec, ratio = "sev", mean = mu)
+sev_uf <- tc_prob(y, F_uf, t = rd_vec, ratio = "sev", m = mu, ta = tau)
+sev_sr <- tc_prob(y, pnorm, t = rd_vec, ratio = "sev", mean = -mu)
 
 sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, title = "")
 sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, title = "")
@@ -70,10 +70,10 @@ save_plots("sev")
 ################################################################################
 ### combined ratio
 
-com_cl <- tail_prob_cal(y, pnorm, t = rd_vec, sd = sqrt(2))
-com_id <- tail_prob_cal(y, pnorm, t = rd_vec, mean = mu)
-com_uf <- tail_prob_cal(y, F_uf, t = rd_vec, m = mu, ta = tau)
-com_sr <- tail_prob_cal(y, pnorm, t = rd_vec, mean = -mu)
+com_cl <- tc_prob(y, pnorm, t = rd_vec, sd = sqrt(2))
+com_id <- tc_prob(y, pnorm, t = rd_vec, mean = mu)
+com_uf <- tc_prob(y, F_uf, t = rd_vec, m = mu, ta = tau)
+com_sr <- tc_prob(y, pnorm, t = rd_vec, mean = -mu)
 
 com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, title = "Climatological")
 com_id <- com_id |> plot_ptc(ratio = "com", names = names, title = "Ideal")

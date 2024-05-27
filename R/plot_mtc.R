@@ -93,7 +93,7 @@ plot_mtc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
   } else {
     df <- do.call(rbind, cal)
     if (!is.null(names)) {
-      df$mth <- rep(names, sapply(cal, nrow))
+      df$mth <- rep(as.factor(names), sapply(cal, nrow))
     } else {
       df$mth <- rep(names(cal), sapply(cal, nrow))
     }

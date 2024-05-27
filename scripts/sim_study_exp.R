@@ -38,9 +38,9 @@ t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 ################################################################################
 ### occurrence ratio
 
-occ_cl <- tail_prob_cal(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
-occ_id <- tail_prob_cal(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta)
-occ_ex <- tail_prob_cal(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta/v)
+occ_cl <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
+occ_id <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta)
+occ_ex <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta/v)
 
 occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
 occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
@@ -52,9 +52,9 @@ save_plots("occ")
 ################################################################################
 ### severity ratio
 
-sev_cl <- tail_prob_cal(y, pgpd, t = rd_vec, ratio = "sev", xi = gamma)
-sev_id <- tail_prob_cal(y, pexp, t = rd_vec, ratio = "sev", rate = delta)
-sev_ex <- tail_prob_cal(y, pexp, t = rd_vec, ratio = "sev", rate = delta/v)
+sev_cl <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", xi = gamma)
+sev_id <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta)
+sev_ex <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta/v)
 
 sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, title = "")
 sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, title = "")
@@ -66,9 +66,9 @@ save_plots("sev")
 ################################################################################
 ### combined ratio
 
-com_cl <- tail_prob_cal(y, pgpd, t = rd_vec, xi = gamma)
-com_id <- tail_prob_cal(y, pexp, t = rd_vec, rate = delta)
-com_ex <- tail_prob_cal(y, pexp, t = rd_vec, rate = delta/v)
+com_cl <- tc_prob(y, pgpd, t = rd_vec, xi = gamma)
+com_id <- tc_prob(y, pexp, t = rd_vec, rate = delta)
+com_ex <- tc_prob(y, pexp, t = rd_vec, rate = delta/v)
 
 com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Climatological")
 com_id <- com_id |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Ideal")
@@ -84,17 +84,17 @@ n_grp <- 3
 group <- numeric(length(delta))
 for (i in 1:n_grp) group[delta >= quantile(delta, (i - 1)/n_grp)] <- paste0("B", i)
 
-com_cl <- tail_prob_div(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
-com_id <- tail_prob_div(y, pexp, t = t_vec, group = group, qu = T, rate = delta)
-com_ex <- tail_prob_div(y, pexp, t = t_vec, group = group, qu = T, rate = delta/v)
+com_cl <- tc_cprob(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
+com_id <- tc_cprob(y, pexp, t = t_vec, group = group, qu = T, rate = delta)
+com_ex <- tc_cprob(y, pexp, t = t_vec, group = group, qu = T, rate = delta/v)
 
 com_b1 <- list("Clim." = com_cl[["B1"]], "Ideal" = com_id[["B1"]], "Extr." = com_ex[["B1"]])
 com_b2 <- list("Clim." = com_cl[["B2"]], "Ideal" = com_id[["B2"]], "Extr." = com_ex[["B2"]])
 com_b3 <- list("Clim." = com_cl[["B3"]], "Ideal" = com_id[["B3"]], "Extr." = com_ex[["B3"]])
 
-com_div_b1 <- com_b1 |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
-com_div_b2 <- com_b2 |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
-com_div_b3 <- com_b3 |> plot_tc_div(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
+com_div_b1 <- com_b1 |> plot_tc_sup(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
+com_div_b2 <- com_b2 |> plot_tc_sup(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[2]))
+com_div_b3 <- com_b3 |> plot_tc_sup(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[3]))
 
 save_plots("com_div", mth = c("b1", "b2", "b3"), width = 3, height = 3)
 

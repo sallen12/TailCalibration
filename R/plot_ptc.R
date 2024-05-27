@@ -78,8 +78,6 @@ plot_ptc <- function(cal, ratio = c("com", "sev", "occ"), names = NULL,
                      xlab = NULL, ylab = NULL, xlims = NULL, ylims = NULL, title = NULL) {
   ratio <- match.arg(ratio)
 
-  if (!is.data.frame(cal) && !is.null(names)) names(cal) <- names
-
   if (ratio == "com") {
     tc <- plot_ptc_com(cal, names, xlab, ylab, xlims, ylims, title)
   } else if (ratio == "sev") {
@@ -119,7 +117,7 @@ plot_ptc_sev <- function(cal, names = NULL, xlab = NULL, ylab = NULL,
   } else {
     df <- do.call(rbind, cal)
     if (!is.null(names)) {
-       df$mth <- rep(names, sapply(cal, nrow))
+       df$mth <- rep(as.factor(names), sapply(cal, nrow))
     } else {
       df$mth <- rep(names(cal), sapply(cal, nrow))
     }
