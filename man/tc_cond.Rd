@@ -13,7 +13,7 @@ tc_cond(
   type = c("prob", "marg"),
   ratio = c("com", "sev", "occ"),
   u = seq(0, 1, 0.01),
-  group = NULL,
+  group = rep(1, length(y)),
   sup = TRUE,
   qu = FALSE,
   subset = rep(TRUE, length(y)),
@@ -155,11 +155,11 @@ mu <- rnorm(n, sd = 0.5)
 # standard calibration is assessed by setting t to -Inf
 ptc <- tc_prob(y, F_x, t = -Inf, mean = mu)
 ptc_cond <- tc_cprob(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
-ptc_cond2 <- tc_cond(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
+ptc_cond2 <- tc_cond(y, F_x, t = -Inf, sup = FALSE, mean = mu)
 
-mtc <- tc_prob(y, F_x, t = -Inf, type = 'marg', mean = mu)
+mtc <- tc_marg(y, F_x, t = -Inf, mean = mu)
 mtc_cond <- tc_cmarg(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
-mtc_cond2 <- tc_cond(y, F_x, t = -Inf, type = 'marg', group = rep(1, length(y)), sup = FALSE, mean = mu)
+mtc_cond2 <- tc_cond(y, F_x, t = -Inf, type = 'marg', sup = FALSE, mean = mu)
 
 # we can condition on arbitrary groupings of the observations
 group <- sample(c('A', 'B'), length(y), replace = TRUE)

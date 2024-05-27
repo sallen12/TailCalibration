@@ -42,11 +42,11 @@
 #' # standard calibration is assessed by setting t to -Inf
 #' ptc <- tc_prob(y, F_x, t = -Inf, mean = mu)
 #' ptc_cond <- tc_cprob(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
-#' ptc_cond2 <- tc_cond(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
+#' ptc_cond2 <- tc_cond(y, F_x, t = -Inf, sup = FALSE, mean = mu)
 #'
-#' mtc <- tc_prob(y, F_x, t = -Inf, type = 'marg', mean = mu)
+#' mtc <- tc_marg(y, F_x, t = -Inf, mean = mu)
 #' mtc_cond <- tc_cmarg(y, F_x, t = -Inf, group = rep(1, length(y)), sup = FALSE, mean = mu)
-#' mtc_cond2 <- tc_cond(y, F_x, t = -Inf, type = 'marg', group = rep(1, length(y)), sup = FALSE, mean = mu)
+#' mtc_cond2 <- tc_cond(y, F_x, t = -Inf, type = 'marg', sup = FALSE, mean = mu)
 #'
 #' # we can condition on arbitrary groupings of the observations
 #' group <- sample(c('A', 'B'), length(y), replace = TRUE)
@@ -62,7 +62,7 @@ NULL
 #' @rdname tc_cond
 #' @export
 tc_cond <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
-                     u = seq(0, 1, 0.01), group = NULL, sup = TRUE, qu = FALSE,
+                     u = seq(0, 1, 0.01), group = rep(1, length(y)), sup = TRUE, qu = FALSE,
                      subset = rep(TRUE, length(y)),  ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
@@ -99,7 +99,7 @@ tc_cprob <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0
 #' @export
 tc_cmarg <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
                      sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
-  check_tc_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
+  check_tc_inputs(y, F_x, t, u = u, group = group, sup = sup, qu = qu, subset = subset)
   ratio <- match.arg(ratio)
 
   grps <- unique(group)
