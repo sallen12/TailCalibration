@@ -1,36 +1,73 @@
 #' Tail calibration of probabilistic forecasts
 #'
-#' Calculate marginal and probabilistic tail calibration of probabilistic forecasts
+#' Assess marginal and probabilistic tail calibration of probabilistic forecasts.
+#' This allows forecast calibration to be assessed when interest is on values above
+#' thresholds of interest.
 #'
-#' @param y vector of realized values.
+#' @param y vector of observations.
 #' @param F_x forecast distribution function to be evaluated.
-#' @param t threshold(s) at which to evaluate tail calibration.
+#' @param t vector of threshold(s) at which to evaluate tail calibration.
+#' @param type string denoting whether to assess marginal ('marg') or probabilistic ('prob') tail calibration.
 #' @param ratio ratio to return; one of 'com', 'sev', 'occ'.
-#' @param z exceedances at which to calculate marginal tail calibration.
-#' @param type string denoting whether to assess marginal or probabilistic tail calibration.
-#' @param sup logical specifying whether to take the supremum of the differences in marginal tail calibration.
+#' @param u vector of values at which to assess tail calibration.
+#' @param group vector specifying observations that should be grouped together.
+#' @param sup logical specifying whether to quantify miscalibration using the supremum distance; default is \code{FALSE}.
+#' @param qu logical specifying whether the thresholds should be renamed in terms of
+#'  quantiles of \code{y}; default is \code{FALSE}.
+#' @param subset logical vector of the same length as \code{y}, allowing only a subset
+#'  of the forecasts and observations (where \code{TRUE}) to be assessed.
 #' @param ... additional arguments to F_x.
 #'
-#' @return
-#' vector of conditional probability integral transform (PIT) values (for \code{type = "prob"}),
-#' or vector of differences (for \code{type = "marg"}).
 #'
-#' @references
-#' \emph{Standard notions of calibration:}
+#' @section Details:
 #'
-#' Gneiting, T. and Resin, J. (2022):
-#' `Regression diagnostics meets forecast evaluation: Conditional calibration, reliability diagrams, and coefficient of determination',
-#' \emph{arXiv pre-print}
-#' \doi{arxiv.org/abs/2108.03210}
+#' \code{tail_cal()} is a wrapper for \code{\link{tc_prob}} if \code{type == 'prob'} and
+#' \code{\link{tc_marg}} if \code{type == 'marg'}.
+#'
+#' Forecast evaluation is typically performed using a sequence of forecasts \eqn{F_{i}}
+#' and corresponding observations \eqn{y_{i}}, for \eqn{i = 1, \dots, n}. The forecasts
+#' are said to be calibrated if the forecasts align statistically with the observations.
+#' Several notions of forecast calibration exist. Forecast tail calibration allows
+#' the calibration of forecasts to be assessed when interest is on values that exceed
+#' a high threshold.
+#'
+#'
+#' @inheritSection tc_prob Details
+#' @inheritSection tc_marg Details
+#' @inheritSection tc_cond Details
+#'
+#'
+#' @inheritSection tc_prob Value
+#'
+#'
+#' @seealso \code{\link{tc_prob}} \code{\link{tc_marg}}
+#'
+#'
+#' @inheritSection tc_prob References
+#' @inheritSection tc_marg References
 #'
 #'
 #' @author Sam Allen
 #'
-#' @details
-#' Details to be added here.
-#'
 #' @examples
-#' Examples to be added here.
+#' n <- 1e5
+#' y <- rnorm(n)
+#' F_x <- pnorm
+#' mu <- rnorm(n, sd = 0.5)
+#'
+#' # standard calibration is assessed by setting t to -Inf
+#' ptc <- tail_cal(y, F_x, t = -Inf, mean = mu)
+#' mtc <- tail_cal(y, F_x, t = -Inf, type = "marg", mean = mu)
+#'
+#' t <- c(-Inf, 0, 1, 2)
+#' com <- tail_cal(y, F_x, t = t, sup = TRUE, mean = mu)
+#' com2 <- tc_prob(y, F_x, t = t, sup = TRUE, mean = mu)
+#' identical(com, com2)
+#'
+#' sev <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'sev', mean = mu)
+#' sev2 <- tc_marg(y, F_x, t = t, ratio = 'sev', mean = mu)
+#' identical(sev, sev2)
+#'
 #'
 #' @name tail_cal
 NULL
@@ -38,204 +75,37 @@ NULL
 
 #' @rdname tail_cal
 #' @export
-tail_cal <- function(y, F_x, t, z = seq(0, 10, 0.1), type = "prob", ...) {
-  if (type == "prob") {
-    tail_prob_cal(y, F_x, t, ...)
-  } else if (type == "marg") {
-    tail_marg_cal(y, F_x, t, z, ...)
-  }
-}
-
-
-################################################################################
-##### probabilistic tail calibration
-
-
-#' @rdname tail_cal
-#' @export
-tail_prob_cal <- function(y, F_x, t, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
-                          sup = FALSE, qu = FALSE, subset = NULL, ...) {
-  check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
-  ratio <- match.arg(ratio)
-
-  if (is.null(subset)) subset <- rep(TRUE, length(y))
-  n <- sum(subset)
-
-  if (ratio == "com") {
-    R <- lapply(t, function(tt) {
-      exc_p <- 1 - F_x(tt, ...)
-      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
-      cpit <- na.omit(cpit[subset])
-      rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
-      data.frame(u = u, rat = rat)
-    })
-  } else if (ratio == "sev") {
-    R <- lapply(t, function(tt) {
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
-      cpit <- na.omit(cpit[subset])
-      rat <- sapply(u, function(uu) mean(cpit <= uu))
-      data.frame(u = u, rat = rat)
-    })
-  } else if (ratio == "occ") {
-    R <- tail_cal_occ(y, F_x, t, type = "ratio", qu = qu, subset = subset, ...)
-  }
-
-  if (sup) {
-    if (ratio %in% c("com", "sev")) {
-      R <- sapply(R, function(r) max(abs(r$rat - r$u)))
-    } else {
-      R <- abs(R$rat - 1)
-    }
-  }
-
-  if (length(t) == 1) {
-    R <- R[[1]]
-  } else if (length(y) == 1) {
-    R <- as.data.frame(t(sapply(seq_along(t), function(i) R[[i]][1, ])))
-  } else if (ratio %in% c("comb", "sev")) {
-    names(R) <- round(t, 2)
-  }
-  return(R)
-}
-
-
-#' @rdname tail_cal
-#' @export
-tail_cal_occ <- function(y, F_x, t, type = c("all", "ratio", "dif"), qu = FALSE, subset = NULL, ...) {
+tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
+                     u = seq(0, 1, 0.01), group = NULL, sup = FALSE, qu = FALSE,
+                     subset = rep(TRUE, length(y)),  ...) {
   type <- match.arg(type)
-  if (is.null(subset)) subset <- rep(TRUE, length(y))
-  G_t <- sapply(t, function(tt) mean(y[subset] > tt))
-  F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
-  if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
-  if (qu) t <- 1 - G_t
-  df <- data.frame(t = t, G_t = G_t, F_t = F_t, rat = G_t/F_t, dif = G_t - F_t)
-  if (type == "all") {
-    return(df)
-  } else if (type == "ratio") {
-    return(df[c("t", "rat")])
-  } else if (type == "dif") {
-    return(df[c("t", "dif")])
-  }
-}
-
-
-################################################################################
-##### conditional probabilistic tail calibration
-
-
-#' @rdname tail_cal
-#' @export
-tail_prob_div <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01), sup = TRUE, qu = FALSE, ...) {
-  check_inputs(y = y, F_x = F_x, t = t, z = NULL, type = "prob", ...)
   ratio <- match.arg(ratio)
-
-  grps <- unique(group)
-
-  R_g <- lapply(grps, function(g) {
-    ind <- group == g
-    tail_prob_cal(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = ind, ...)
-  })
-
-  if (sup) {
-    if (qu) t <- sapply(t, function(tt) mean(y <= tt))
-    R_g <- lapply(R_g, function(x) data.frame(t = t, d = x))
-  }
-
-  names(R_g) <- grps
-
-  return(R_g)
-}
-
-
-################################################################################
-##### marginal tail calibration
-
-
-#' @rdname tail_cal
-#' @export
-tail_marg_cal <- function(y, F_x, t, ratio = c("com", "sev", "occ"), z = seq(0, 10, 0.1), sup = FALSE, ...) {
-  check_inputs(y = y, F_x = F_x, t = t, z = z, type = "marg", ...)
-
-  if (ratio == "com") {
-    D <- lapply(t, function(tt) {
-      F_t <- F_x(tt, ...)
-      exc_p <- 1 - mean(F_tt)
-      ind <- y > tt
-      dif <- sapply(z, function(zz) {
-        cprob <- mean(y > tt & y <= (tt + zz))
-        Fhat_t <- (F_x(zz + tt, ...) - F_t)/(1 - F_t)
-        Fhat_t <- mean(Fhat_t[ind])
-        (cprob/exc_p) - Fhat_t
-      })
-      data.frame(x = z, dif = dif)
-    })
-  } else if (ratio == "sev") {
-    D <- lapply(t, function(tt) {
-      F_t <- F_x(tt, ...)
-      ind <- y > tt
-      dif <- sapply(z, function(zz) {
-        cprob <- mean(y[ind] <= (tt + zz))
-        Fhat_t <- (F_x(zz + tt, ...) - F_t)/(1 - F_t)
-        Fhat_t <- mean(Fhat_t[ind])
-        cprob - Fhat_t
-      })
-      data.frame(x = z, dif = dif)
-    })
-  } else if (ratio == "occ") {
-    D <- tail_cal_occ(y, F_x, t, type = "dif", ...)
-  }
-
-  if (sup) {
-    if (ratio %in% c("com", "sev")) {
-      D <- sapply(D, function(d) max(abs(d$dif)))
-    } else {
-      D <- max(abs(D$dif))
+  if (is.null(group)) {
+    if (type == 'prob') {
+      tc_prob(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
+    } else if (type == 'marg') {
+      tc_marg(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
     }
-  }
-
-  if (length(t) == 1) {
-    D <- D[[1]]
-  } else if (length(y) == 1) {
-    D <- as.data.frame(t(sapply(seq_along(t), function(i) D[[i]][1, ])))
   } else {
-    names(D) <- round(t, 2)
+    tc_cond(y, F_x, t, type = type, ratio = ratio, u = u, group = group, sup = sup, qu = qu, subset = subset, ...)
   }
-  return(D)
+
 }
 
-
-################################################################################
-##### conditional marginal tail calibration
-
-
-################################################################################
-##### checks
-
-
-check_inputs <- function(y, F_x, t, z, type, ...) {
-  if (!is.numeric(y)) stop("'y' is not numeric")
-  if (!is.vector(y)) stop("'y' is not a vector")
+check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset) {
+  if (!is.numeric(y) || !is.vector(y)) stop("'y' must be a numeric value or vector")
+  if (!is.numeric(t) || !is.vector(t)) stop("'t' must be a numeric value or vector")
+  if (!is.numeric(u) || !is.vector(u)) stop("'u' must be a numeric value or vector")
+  if (!is.null(group)) {
+    if (!is.vector(group) || length(group) != length(y))
+      stop("'group' must be a vector of the same length as 'y'")
+    if (length(unique(group)) > length(y)/2)
+      warning("the number of unique elements in 'group' is large relative to the number of elements in 'y'")
+  }
+  if (!is.logical(sup) || length(sup) > 1) stop("'sup' must be either TRUE or FALSE")
+  if (!is.logical(qu) || length(qu) > 1) stop("'qu' must be either TRUE or FALSE")
+  if (!is.logical(subset) || !is.vector(subset) || length(subset) != length(y))
+    stop("'subset' must be a logical value or vector of the same length as 'y'")
   if (!is.function(F_x)) stop("'F_x' is not a function")
-  if (!is.numeric(t)) stop("'t' is not numeric")
-
-  if (!(type %in% c("prob", "marg"))) stop("'type' must be one of 'prob' or 'marg'")
-  if (type == "marg") {
-    if (!is.numeric(z)) stop("'z' is not numeric")
-  }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

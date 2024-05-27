@@ -153,9 +153,9 @@ t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 
 ##### unconditional diagnostic plots
 
-occ <- tail_prob_cal(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
-sev <- tail_prob_cal(y, pgpd, t = rd_vec, ratio = "sev", qu = T, xi = gamma)
-com <- tail_prob_cal(y, pgpd, t = rd_vec, qu = T, xi = gamma)
+occ <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
+sev <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", qu = T, xi = gamma)
+com <- tc_prob(y, pgpd, t = rd_vec, qu = T, xi = gamma)
 
 occ <- occ |> plot_ptc(ratio = "occ", ylims = c(0, 2))
 sev <- sev |> plot_ptc(ratio = "sev", names = names)

@@ -3,8 +3,7 @@
 #' Calculate conditional probability integral transform (PIT) values for probabilistic
 #' forecasts in the form of familiar parametric distributions.
 #'
-#' @param y vector of observations.
-#' @param F_x cumulative distribution function (cdf).
+#' @inheritParams tail_cal
 #' @param mean,sd,location,scale,rate,shape,shape1,shape2,df1,df2,df,ncp,meanlog,sdlog,nmeans,nranges,min,max vector of parameters corresponding
 #'  to the parametric predictive distributions.
 #' @param a,b lower and upper thresholds defining the interval of outcomes that are of interest.

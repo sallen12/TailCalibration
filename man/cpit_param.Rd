@@ -65,11 +65,13 @@ cpit_weibull(y, shape, scale = 1, a = -Inf, b = Inf, return_na = TRUE)
 \arguments{
 \item{y}{vector of observations.}
 
-\item{F_x}{cumulative distribution function (cdf).}
+\item{F_x}{forecast distribution function to be evaluated.}
 
 \item{a, b}{lower and upper thresholds defining the interval of outcomes that are of interest.}
 
 \item{return_na}{logical specifying whether or not to return NAs for outcomes not in the interval of interest.}
+
+\item{...}{additional arguments to F_x.}
 
 \item{mean, sd, location, scale, rate, shape, shape1, shape2, df1, df2, df, ncp, meanlog, sdlog, nmeans, nranges, min, max}{vector of parameters corresponding
 to the parametric predictive distributions.}

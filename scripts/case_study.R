@@ -8,8 +8,6 @@ library(ggplot2)
 library(zoo)
 library(crch)
 library(scoringRules)
-library(WeightedForecastVerification)
-library(reliabilitydiag)
 
 
 ################################################################################
@@ -502,53 +500,15 @@ for (j in seq_along(stat_ids)) {
 #save(pit, crps, margd, cpit, cmargd, exc_p, file = "scripts/cs_all_scores.RData")
 load("scripts/cs_all_scores.RData")
 
+
 ################################################################################
 ## evaluation
-
 
 lt <- which(lead_times == 24)
 
 ## crps
 1 - mean(crps[['emos']][, lt, ], na.rm = T)/mean(crps[['raw']][, lt, ], na.rm = T)
 1 - mean(crps[['raw_sm']][, lt, ], na.rm = T)/mean(crps[['raw']][, lt, ], na.rm = T)
-
-
-## reliability diagrams
-
-rel_diag <- function(y, exc_p, t, names = NULL, ...) {
-  d <- lapply(seq_along(t), function(i) {
-    o <- as.numeric(as.vector(y > t[i]))
-    na_ind <- is.na(o)
-    o <- o[!na_ind]
-    p <- as.vector(exc_p[, , i])[!na_ind]
-    out <- reliabilitydiag::reliabilitydiag(p, y = o)[[1]]$bins
-    if (!is.null(names)) {
-      name <- names[i]
-    } else {
-      name <- round(t[i], 2)
-    }
-    return(data.frame(x = c(out$x_min, out$x_max[length(out$x_max)]),
-                      y = c(out$CEP_pav, out$CEP_pav[length(out$CEP_pav)]),
-                      t = name))
-  })
-  d <- do.call(rbind, d)
-  rd_plot <- ggplot(d) +
-    geom_step(aes(x = x, y = y, col = as.factor(t))) +
-    geom_abline(aes(slope = 1, intercept = 0), linetype = "dotted") +
-    scale_x_continuous(name = "p", limits = c(0, 1), expand = c(0, 0)) +
-    scale_y_continuous(name = "CEP", limits = c(0, 1), expand = c(0, 0)) +
-    theme_bw() +
-    theme(panel.grid = element_blank(),
-          legend.title = element_blank(),
-          legend.justification = c(0, 1),
-          legend.position = c(0.01, 0.99))
-
-  return(rd_plot)
-}
-
-mth <- 'emos'
-rel_diag(test_obs[, lt, ], exc_p[[mth]][, lt, , ], t = t_vec)
-ggsave(paste0("plots/cs_rd_", mth, ".png"), width = 3.3, height = 3)
 
 
 ## pit histograms
@@ -624,8 +584,6 @@ ggplot(df) + geom_line(aes(x = u, y = r, col = mth)) +
 ggsave(paste0("plots/cs_cmb_rd_", mth, ".png"), width = 3.5, height = 3.4)
 
 
-## marginal calibration plots
-mth <- 'raw_sm'
 
 # recover predicted exceedance probabilities
 exc_p_Fx <- 1 - sapply(seq_along(y_vec), function(j) sapply(seq_along(stat_ids), function(i)
@@ -641,49 +599,4 @@ ggplot(df) + geom_line(aes(x = t, y = rat)) +
   theme(panel.grid = element_blank()) +
   ggtitle(" ")
 ggsave(paste0("plots/cs_marg_rat_", mth, ".png"), width = 3.5, height = 3.4)
-
-
-## marginal tail calibration plots
-mth <- 'raw'
-
-df <- data.frame(cal = c(apply(cmargd[[mth]][, lt, ], 2, mean, na.rm = T)),
-                 t = y_vec)
-
-#a_vec <- sapply(y_vec, function(x) mean(test_obs <= x, na.rm = T))
-
-ggplot(df) + geom_line(aes(x = t, y = cal)) +
-  geom_hline(aes(yintercept = 0), linetype = "dotted") +
-  scale_x_continuous(name = "Threshold (mm)", expand = c(0, 0)) +
-  scale_y_continuous(name = "Sup. difference", limits = c(-0.1, 1)) +
-  theme_bw() +
-  theme(panel.grid = element_blank())
-ggsave(paste0("plots/cs_marg_sup_", mth, ".png"), width = 3.2, height = 3)
-
-
-
-
-## marginal tail calibration plots (old)
-# mth <- 'emos'
-#
-# z <- list("  S" = colMeans(margd[[mth]][, lt, ], na.rm = T),
-#           " 5" = colMeans(cmargd[[mth]][, lt, , which(t_vec == 5)], na.rm = T),
-#           "10" = colMeans(cmargd[[mth]][, lt, , which(t_vec == 10)], na.rm = T),
-#           "15" = colMeans(cmargd[[mth]][, lt, , which(t_vec == 15)], na.rm = T))
-#
-# df <- data.frame(d = unlist(z),
-#                  y = y_vec,
-#                  m = rep(names(z), each = length(y_vec)))
-# ggplot(df) + geom_line(aes(x = y, y = d, col = as.factor(m))) +
-#   geom_hline(aes(yintercept = 0), lty = "dotted") +
-#   scale_x_continuous(name = "y", limits = c(0, max(y_vec)), expand = c(0, 0)) +
-#   scale_y_continuous(name = expression("E[" ~ F[t] ~ "(y)] - Q(Y - t ≤ y | Y > t)"),
-#                      limits = c(-0.2, 0.4), expand = c(0, 0)) +
-#   theme_bw() +
-#   theme(panel.grid = element_blank(),
-#         legend.title = element_blank(),
-#         legend.justification = c(0.5, 1),
-#         legend.position = c(0.5, 0.99)) +
-#   guides(col = guide_legend(nrow = 1))
-# ggsave(paste0("plots/cs_marg_", mth, ".png"), width = 3.3, height = 3)
-
 
