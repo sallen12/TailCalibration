@@ -35,8 +35,7 @@
 #' Student's t, Tukey, uniform, and Weibull. The parameters used in these functions are the
 #' same as in the standard R distribution handles, e.g. \code{pnorm}. cPIT values can be
 #' calculate for ensemble forecasts, or samples from a predictive distribution, using
-#' \code{\link{cpit_sample()}}
-#' .
+#' \code{\link{cpit_sample}}.
 #'
 #' @seealso cpit_sample
 #'

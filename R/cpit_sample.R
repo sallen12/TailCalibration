@@ -35,7 +35,7 @@
 #' given that the outcome is in the range [\code{a}, \code{b}]. This is achieved here
 #' by first smoothing the predictive sample using kernel density estimation.
 #'
-#' \code{\link{cpit_param()}} allows cPIT values to be calculated for a range of
+#' \code{\link{cpit_param}} allows cPIT values to be calculated for a range of
 #' parametric distributions. \code{cpit_sample()} provides functionality to compute
 #' these values for forecasts in the form of an ensemble or sample from a predictive distribution.
 #' The argument \code{dat} contains the sample from the forecast distribution. This
