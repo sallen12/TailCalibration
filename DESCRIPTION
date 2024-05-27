@@ -2,15 +2,18 @@ Package: TailCalibration
 Type: Package
 Title: Evaluate the calibration of probabilistic forecasts for extreme outcomes
 Version: 0.1.0
-Author: c(person(given = "Sam", family = "Allen", email = "sam.allen@math.stat.ethz.ch", role = c("cre", "aut")),
+Authors@R: c(person(given = "Sam", family = "Allen", email = "sam.allen@math.stat.ethz.ch", role = c("cre", "aut")),
           person(given = "Jon", family = "Koh", role = "ctb"))
-Description: An R package that provides tools to evaluate the calibration of 
-    probabilistic forecasts for extreme outcomes.
-License: MIT + file LICENSE
+Description: An R package that provides tools to evaluate the tail calibration of 
+    probabilistic forecasts, allowing the forecasts to be assessed when interest is on predicting extreme outcomes.
+URL: https://github.com/sallen2/TailCalibration
+License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
+Depends: R (>= 3.5.0)
+Imports:
+    ggplot2
 Suggests: 
     knitr,
     rmarkdown
-VignetteBuilder: knitr
