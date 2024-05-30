@@ -8,6 +8,7 @@ library(ggplot2)
 library(zoo)
 library(crch)
 library(scoringRules)
+library(WeightedForecastVerification)
 
 
 ################################################################################
@@ -512,7 +513,7 @@ lt <- which(lead_times == 24)
 
 
 ## pit histograms
-mth <- 'raw_sm'
+mth <- 'raw'
 if (mth == 'raw') {
   pl_pit1 <- pit_hist(pit[[mth]][, lt, ], ymax = 0.2, xticks = F, title = "PIT")
 } else {
