@@ -91,7 +91,6 @@ cpit_sample <- function(y, dat, a = -Inf, b = Inf, kde = FALSE, bw = NULL, retur
   } else {
     pit <- pens(y, dat, a, b)
   }
-  pit[y <= a | y >= b] <- NA
   if (return_na) {
     return(pit)
   } else {
@@ -110,6 +109,7 @@ pkde <- function(q, m_vec, s_vec, a = -Inf, b = Inf){
   } else if (b == Inf) {
     p[p_a == 1] <- 1
   }
+  p[q <= a | q >= b] <- NA
   return(p)
 }
 
@@ -119,16 +119,21 @@ pens <- function(q, dat, a = -Inf, b = Inf){
     p_q <- mean(dat <= q)
     p_a <- mean(dat <= a)
     p_b <- mean(dat <= b)
+    p_q_m <- mean(dat < q)
+    v <- runif(1, p_q_m, p_q)
   } else {
     p_q <- rowMeans(dat <= q)
     p_a <- rowMeans(dat <= a)
     p_b <- rowMeans(dat <= b)
+    p_q_m <- rowMeans(dat < q)
+    v <- runif(nrow(dat), p_q_m, p_q)
   }
-  p <- (p_q - p_a)/(p_b - p_a)
+  p <- (v - p_a)/(p_b - p_a)
   if (a == -Inf) {
     p[p_b == 0] <- 0
   } else if (b == Inf) {
     p[p_a == 1] <- 1
   }
+  p[q <= a | q >= b] <- NA
   return(p)
 }

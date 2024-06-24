@@ -93,7 +93,7 @@ NULL
 #' @rdname cpit_param
 #' @export
 cpit_dist <- function(y, F_x, a = -Inf, b = Inf, return_na = TRUE, ...) {
-  if (sum(y >= a & y <= b) == 0) warning(paste("no values in y fall between a =", a, "and b =", b))
+  if (sum(y >= a & y <= b, na.rm = T) == 0) warning(paste("no values in y fall between a =", a, "and b =", b))
   p_y <- F_x(y, ...)
   if (a == -Inf) {
     p_a <- 0
