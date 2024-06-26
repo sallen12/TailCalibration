@@ -10,6 +10,7 @@
 #' @param type string denoting whether to assess marginal ('marg') or probabilistic ('prob') tail calibration.
 #' @param ratio ratio to return; one of 'com', 'sev', 'occ'.
 #' @param u vector of values at which to assess tail calibration.
+#' @param lower numeric value at which the forecast distributions are censored.
 #' @param group vector specifying observations that should be grouped together.
 #' @param sup logical specifying whether to quantify miscalibration using the supremum distance; default is \code{FALSE}.
 #' @param qu logical specifying whether the thresholds should be renamed in terms of

@@ -65,7 +65,7 @@ cpit_weibull(y, shape, scale = 1, a = -Inf, b = Inf, return_na = TRUE)
 \arguments{
 \item{y}{vector of observations.}
 
-\item{F_x}{forecast distribution function to be evaluated.}
+\item{F_x}{forecast distribution function to be evaluated, or a vector or matrix of samples from the forecast distribution.}
 
 \item{a, b}{lower and upper thresholds defining the interval of outcomes that are of interest.}
 

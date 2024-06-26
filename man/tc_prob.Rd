@@ -9,7 +9,8 @@ tc_prob(
   F_x,
   t,
   ratio = c("com", "sev", "occ"),
-  u = seq(0, 1, 0.01),
+  u = seq(0.01, 0.99, 0.01),
+  lower = -Inf,
   sup = FALSE,
   qu = FALSE,
   subset = rep(TRUE, length(y)),
@@ -19,13 +20,15 @@ tc_prob(
 \arguments{
 \item{y}{vector of observations.}
 
-\item{F_x}{forecast distribution function to be evaluated.}
+\item{F_x}{forecast distribution function to be evaluated, or a vector or matrix of samples from the forecast distribution.}
 
 \item{t}{vector of threshold(s) at which to evaluate tail calibration.}
 
 \item{ratio}{ratio to return; one of 'com', 'sev', 'occ'.}
 
 \item{u}{vector of values at which to assess tail calibration.}
+
+\item{lower}{numeric value at which the forecast distributions are censored.}
 
 \item{sup}{logical specifying whether to quantify miscalibration using the supremum distance; default is \code{FALSE}.}
 

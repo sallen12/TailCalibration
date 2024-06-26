@@ -2,7 +2,7 @@ Package: TailCalibration
 Type: Package
 Title: Evaluate the calibration of probabilistic forecasts for extreme outcomes
 Version: 0.1.0
-Authors@R: c(person(given = "Sam", family = "Allen", email = "sam.allen@math.stat.ethz.ch", role = c("cre", "aut")),
+Authors@R: c(person(given = "Sam", family = "Allen", email = "sam.allen@stat.math.ethz.ch", role = c("cre", "aut")),
           person(given = "Jon", family = "Koh", role = "ctb"))
 Description: An R package that provides tools to evaluate the tail calibration of 
     probabilistic forecasts, allowing the forecasts to be assessed when interest is on predicting extreme outcomes.

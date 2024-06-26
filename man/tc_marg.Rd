@@ -19,7 +19,7 @@ tc_marg(
 \arguments{
 \item{y}{vector of observations.}
 
-\item{F_x}{forecast distribution function to be evaluated.}
+\item{F_x}{forecast distribution function to be evaluated, or a vector or matrix of samples from the forecast distribution.}
 
 \item{t}{vector of threshold(s) at which to evaluate tail calibration.}
 

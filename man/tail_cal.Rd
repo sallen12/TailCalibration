@@ -10,7 +10,8 @@ tail_cal(
   t,
   type = c("prob", "marg"),
   ratio = c("com", "sev", "occ"),
-  u = seq(0, 1, 0.01),
+  u = seq(0.01, 0.99, 0.01),
+  lower = -Inf,
   group = NULL,
   sup = FALSE,
   qu = FALSE,
@@ -21,7 +22,7 @@ tail_cal(
 \arguments{
 \item{y}{vector of observations.}
 
-\item{F_x}{forecast distribution function to be evaluated.}
+\item{F_x}{forecast distribution function to be evaluated, or a vector or matrix of samples from the forecast distribution.}
 
 \item{t}{vector of threshold(s) at which to evaluate tail calibration.}
 
@@ -30,6 +31,8 @@ tail_cal(
 \item{ratio}{ratio to return; one of 'com', 'sev', 'occ'.}
 
 \item{u}{vector of values at which to assess tail calibration.}
+
+\item{lower}{numeric value at which the forecast distributions are censored.}
 
 \item{group}{vector specifying observations that should be grouped together.}
 
@@ -52,7 +55,8 @@ thresholds of interest.
 
 
 \code{tail_cal()} is a wrapper for \code{\link{tc_prob}} if \code{type == 'prob'} and
-\code{\link{tc_marg}} if \code{type == 'marg'}.
+\code{\link{tc_marg}} if \code{type == 'marg'}. If \code{group} is not \code{NULL},
+then \code{tail_cal()} is a wrapper for \code{\link{tc_cond}}.
 
 Forecast evaluation is typically performed using a sequence of forecasts \eqn{F_{i}}
 and corresponding observations \eqn{y_{i}}, for \eqn{i = 1, \dots, n}. The forecasts
@@ -312,6 +316,14 @@ identical(com, com2)
 sev <- tail_cal(y, F_x, t = t, type = 'marg', ratio = 'sev', mean = mu)
 sev2 <- tc_marg(y, F_x, t = t, ratio = 'sev', mean = mu)
 identical(sev, sev2)
+
+
+# ensemble forecast
+M <- 100
+F_x <- matrix(rnorm(n*M, mu), nrow = n, ncol = M)
+ptc_ens <- tail_cal(y, F_x, t = -Inf, mean = mu)
+plot_ptc(ptc)
+plot_ptc(ptc_ens)
 
 
 }
