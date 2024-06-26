@@ -56,9 +56,9 @@ sev_cl <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", xi = gamma)
 sev_id <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta)
 sev_ex <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta/v)
 
-sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, title = "")
-sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, title = "")
-sev_ex <- sev_ex |> plot_ptc(ratio = "sev", names = names, title = "")
+sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_ex <- sev_ex |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
 
 save_plots("sev")
 

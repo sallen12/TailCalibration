@@ -37,13 +37,13 @@ dat <- matrix(dat, ncol = 51)[!na_ind, ]
 
 ## combined ratio
 com <- tc_prob(y, dat, t = t_vec, lower = 0)
-plot_ptc(com, names = c("  S", " 5", "10", "15"), ylims = c(0, 1.9))
+plot_ptc(com, names = c("  S", " 5", "10", "15"), ylims = c(0, 1.9), title = "IFS")
 ggsave("plots/cs_com_ifs.png", width = width, height = height)
 
 
 ## severity ratio
 sev <- tc_prob(y, dat, t = t_vec, ratio = "sev", lower = 0)
-plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"))
+plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"), ylims = c(0, 1.02), title = "")
 ggsave("plots/cs_sev_ifs.png", width = width, height = height)
 
 
@@ -69,7 +69,7 @@ ggsave("plots/cs_com_smo.png", width = width, height = height)
 
 ## severity ratio
 sev <- tc_prob(y, F_x, t = t_vec, ratio = "sev", lower = 0, location = mu, scale = sig)
-plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"), title = "")
+plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"), ylims = c(0, 1.02), title = "")
 ggsave("plots/cs_sev_smo.png", width = width, height = height)
 
 
@@ -94,7 +94,7 @@ ggsave("plots/cs_com_pp.png", width = width, height = height)
 
 ## severity ratio
 sev <- tc_prob(y, F_x, t = t_vec, lower = 0, ratio = "sev", location = mu, scale = sig)
-plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"), title = "")
+plot_ptc(sev, ratio = "sev", names = c("  S", " 5", "10", "15"), ylims = c(0, 1.02), title = "")
 ggsave("plots/cs_sev_pp.png", width = width, height = height)
 
 

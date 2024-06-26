@@ -161,7 +161,7 @@ occ <- occ |> plot_ptc(ratio = "occ", ylims = c(0, 2))
 sev <- sev |> plot_ptc(ratio = "sev", names = names)
 com <- com |> plot_ptc(names = names, ylims = c(0, 1.3), title = "")
 
-ggsave(plot = com, "plots/ex_opt_com_1e6.png", width = 3.2, height = 3)
+ggsave(plot = com, "plots/ex_opt_com_1e6.png", width = 3, height = 3)
 
 
 ##### conditional combined diagnostic plot

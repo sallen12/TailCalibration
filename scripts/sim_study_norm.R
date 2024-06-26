@@ -11,7 +11,7 @@ set.seed(631)
 save_plots <- function(prefix, mth = c("cl", "id", "uf", "sr"), width = 3.5, height = 3.4) {
   for (m in mth) {
     plotname <- paste0(prefix, "_", m)
-    filename <- paste0("plots/sim_norm_", prefix, "_1e6_", m, "_norm.png")
+    filename <- paste0("plots/sim_norm_", prefix, "_1e6_", m, ".png")
     ggsave(filename, plot = get(plotname), width = width, height = height)
   }
 }
@@ -59,10 +59,10 @@ sev_id <- tc_prob(y, pnorm, t = rd_vec, ratio = "sev", mean = mu)
 sev_uf <- tc_prob(y, F_uf, t = rd_vec, ratio = "sev", m = mu, ta = tau)
 sev_sr <- tc_prob(y, pnorm, t = rd_vec, ratio = "sev", mean = -mu)
 
-sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, title = "")
-sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, title = "")
-sev_uf <- sev_uf |> plot_ptc(ratio = "sev", names = names, title = "")
-sev_sr <- sev_sr |> plot_ptc(ratio = "sev", names = names, title = "")
+sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_uf <- sev_uf |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_sr <- sev_sr |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
 
 save_plots("sev")
 
@@ -75,10 +75,10 @@ com_id <- tc_prob(y, pnorm, t = rd_vec, mean = mu)
 com_uf <- tc_prob(y, F_uf, t = rd_vec, m = mu, ta = tau)
 com_sr <- tc_prob(y, pnorm, t = rd_vec, mean = -mu)
 
-com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, title = "Climatological")
-com_id <- com_id |> plot_ptc(ratio = "com", names = names, title = "Ideal")
-com_uf <- com_uf |> plot_ptc(ratio = "com", names = names, title = "Unfocused")
-com_sr <- com_sr |> plot_ptc(ratio = "com", names = names, title = "Sign-reversed")
+com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Climatological")
+com_id <- com_id |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Ideal")
+com_uf <- com_uf |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Unfocused")
+com_sr <- com_sr |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Sign-reversed")
 
 save_plots("com")
 
