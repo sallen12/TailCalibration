@@ -184,13 +184,13 @@ sevsup <- tc_prob(y, F_x, t = c(-Inf, 0, 1, 2), ratio = 'sev', sup = TRUE, qu = 
 
 
 # mixture between a standard normal and logistic distribution
-F_x <- function(x, mu1, mu2, lo) plogis(x, mu1)*lo + pnorm(x, mu2)*(1 - lo)
+F_x <- function(x, mu1, mu2, loi) plogis(x, mu1)*loi + pnorm(x, mu2)*(1 - loi)
 
 mu1 <- rnorm(mu + 1, sd = 0.5)
 mu2 <- mu
-lo <- mu > 1
+loi <- mu > 1
 
-cpit <- tc_prob(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
+cpit <- tc_prob(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, loi = loi)
 
 
 }
