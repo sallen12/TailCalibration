@@ -72,7 +72,7 @@ ds_fra = cml.load_dataset(path, 'ensemble', 'france')
 ds_ger = cml.load_dataset(path, 'ensemble', 'germany')
 ds_net = cml.load_dataset(path, 'ensemble', 'netherlands')
 
-#%% save station forecasts as netcdf
+#%% save station forecasts (2017-2018) as netcdf
 
 # convert to xarray
 fcs_aus = ds_aus.to_xarray()[vari]
@@ -94,3 +94,4 @@ obs_net = ds_net.get_observations_as_xarray()[vari]
 
 obs = xr.merge([obs_aus, obs_bel, obs_fra, obs_ger, obs_net])
 obs.to_netcdf(path = path_save + vari + '_station_1718_obs.ncdf4')
+
