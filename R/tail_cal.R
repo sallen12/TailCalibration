@@ -5,7 +5,7 @@
 #' thresholds of interest.
 #'
 #' @param y vector of observations.
-#' @param F_x forecast distribution function to be evaluated.
+#' @param F_x forecast distribution function to be evaluated, or a vector or matrix of samples from the forecast distribution.
 #' @param t vector of threshold(s) at which to evaluate tail calibration.
 #' @param type string denoting whether to assess marginal ('marg') or probabilistic ('prob') tail calibration.
 #' @param ratio ratio to return; one of 'com', 'sev', 'occ'.
@@ -22,7 +22,8 @@
 #' @section Details:
 #'
 #' \code{tail_cal()} is a wrapper for \code{\link{tc_prob}} if \code{type == 'prob'} and
-#' \code{\link{tc_marg}} if \code{type == 'marg'}.
+#' \code{\link{tc_marg}} if \code{type == 'marg'}. If \code{group} is not \code{NULL},
+#' then \code{tail_cal()} is a wrapper for \code{\link{tc_cond}}.
 #'
 #' Forecast evaluation is typically performed using a sequence of forecasts \eqn{F_{i}}
 #' and corresponding observations \eqn{y_{i}}, for \eqn{i = 1, \dots, n}. The forecasts
@@ -69,6 +70,14 @@
 #' identical(sev, sev2)
 #'
 #'
+#' # ensemble forecast
+#' M <- 100
+#' F_x <- matrix(rnorm(n*M, mu), nrow = n, ncol = M)
+#' ptc_ens <- tail_cal(y, F_x, t = -Inf, mean = mu)
+#' plot_ptc(ptc)
+#' plot_ptc(ptc_ens)
+#'
+#'
 #' @name tail_cal
 NULL
 
@@ -76,13 +85,13 @@ NULL
 #' @rdname tail_cal
 #' @export
 tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
-                     u = seq(0, 1, 0.01), group = NULL, sup = FALSE, qu = FALSE,
+                     u = seq(0.01, 0.99, 0.01), lower = -Inf, group = NULL, sup = FALSE, qu = FALSE,
                      subset = rep(TRUE, length(y)),  ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
   if (is.null(group)) {
     if (type == 'prob') {
-      tc_prob(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
+      tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, ...)
     } else if (type == 'marg') {
       tc_marg(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
     }
@@ -92,8 +101,10 @@ tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev'
 
 }
 
+
 check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset) {
   if (!is.numeric(y) || !is.vector(y)) stop("'y' must be a numeric value or vector")
+  if (any(is.na(y))) stop("'y' contains missing values")
   if (!is.numeric(t) || !is.vector(t)) stop("'t' must be a numeric value or vector")
   if (!is.numeric(u) || !is.vector(u)) stop("'u' must be a numeric value or vector")
   if (!is.null(group)) {
@@ -106,6 +117,11 @@ check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset) {
   if (!is.logical(qu) || length(qu) > 1) stop("'qu' must be either TRUE or FALSE")
   if (!is.logical(subset) || !is.vector(subset) || length(subset) != length(y))
     stop("'subset' must be a logical value or vector of the same length as 'y'")
-  if (!is.function(F_x)) stop("'F_x' is not a function")
+  if (!is.function(F_x) && !is.matrix(F_x) && !is.vector(F_x)) stop("'F_x' must be a function or a numeric vector or matrix")
+  if (is.matrix(F_x)) {
+    if (nrow(F_x) != length(y)) stop("the dimensions of 'F_x' do not match the dimensions of 'y'")
+  } else if (is.vector(F_x)) {
+    if (length(y) > 1) stop("the dimensions of 'F_x' do not match the dimensions of 'y'")
+  }
 }
 

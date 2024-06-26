@@ -163,24 +163,48 @@ NULL
 
 #' @rdname tc_prob
 #' @export
-tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 1, 0.01),
-                sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
+tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.99, 0.01),
+                    lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
   check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset)
   ratio <- match.arg(ratio)
+  if (!is.function(F_x)) {
+    dat <- F_x
+    if (is.vector(dat)) {
+      F_x <- function(x, ...) mean(dat <= x)
+    } else {
+      F_x <- function(x, ...) rowMeans(dat <= x)
+    }
+  }
 
   if (ratio == 'com') {
     n <- sum(subset)
     R <- lapply(t, function(tt) {
       exc_p <- 1 - F_x(tt, ...)
       if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      if (is.function(F_x)) {
+        cpit <- cpit_dist(y, F_x, a = tt, ...)
+      } else {
+        cpit <- cpit_sample(y, dat, a = tt)
+      }
+      if (lower >= tt) {
+        ind <- y <= lower
+        cpit[ind] <- runif(sum(ind), 0, cpit[ind])
+      }
       cpit <- na.omit(cpit[subset])
       rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
       data.frame(u = u, rat = rat)
     })
   } else if (ratio == 'sev') {
     R <- lapply(t, function(tt) {
-      cpit <- cpit_dist(y, F_x, a = tt, ...)
+      if (is.function(F_x)) {
+        cpit <- cpit_dist(y, F_x, a = tt, ...)
+      } else {
+        cpit <- cpit_sample(y, dat, a = tt)
+      }
+      if (lower >= tt) {
+        ind <- y <= lower
+        cpit[ind] <- runif(sum(ind), 0, cpit[ind])
+      }
       cpit <- na.omit(cpit[subset])
       rat <- sapply(u, function(uu) mean(cpit <= uu))
       data.frame(u = u, rat = rat)

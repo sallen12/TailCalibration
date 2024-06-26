@@ -62,12 +62,12 @@ NULL
 #' @rdname tc_cond
 #' @export
 tc_cond <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
-                     u = seq(0, 1, 0.01), group = rep(1, length(y)), sup = TRUE, qu = FALSE,
-                     subset = rep(TRUE, length(y)),  ...) {
+                    u = seq(0.01, 0.99, 0.01), group = rep(1, length(y)), lower = -Inf,
+                    sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)),  ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
   if (type == 'prob') {
-    tc_cprob(y, F_x, t, group = group, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
+    tc_cprob(y, F_x, t, group = group, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, ...)
   } else if (type == 'marg') {
     tc_cmarg(y, F_x, t, group = group, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
   }
@@ -77,7 +77,7 @@ tc_cond <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev',
 #' @rdname tc_cond
 #' @export
 tc_cprob <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
-                     sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
+                     lower = -Inf, sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
   check_tc_inputs(y, F_x, t, u = u, group = group, sup = sup, qu = qu, subset = subset)
   ratio <- match.arg(ratio)
 
@@ -85,7 +85,7 @@ tc_cprob <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0
 
   R_g <- lapply(grps, function(g) {
     ind <- (group == g) & subset
-    tc_prob(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = ind, ...)
+    tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = ind, ...)
   })
 
   names(R_g) <- grps

@@ -146,15 +146,20 @@
 NULL
 
 
-################################################################################
-##### marginal tail calibration
-
 #' @rdname tc_marg
 #' @export
 tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.1),
                    sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
   check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset)
   ratio <- match.arg(ratio)
+  if (!is.function(F_x)) {
+    dat <- F_x
+    if (is.vector(dat)) {
+      F_x <- function(x, ...) mean(dat <= x)
+    } else {
+      F_x <- function(x, ...) rowMeans(dat <= x)
+    }
+  }
 
   n <- sum(subset)
 
