@@ -164,8 +164,8 @@ NULL
 #' @rdname tc_prob
 #' @export
 tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.99, 0.01),
-                    lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset)
+                    lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, ...) {
+  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset, var_t)
   ratio <- match.arg(ratio)
   if (!is.function(F_x)) {
     dat <- F_x
@@ -178,44 +178,67 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
 
   if (ratio == 'com') {
     n <- sum(subset)
-    R <- lapply(t, function(tt) {
-      exc_p <- 1 - F_x(tt, ...)
+    if (var_t) {
+      exc_p <- 1 - F_x(t, ...)
       if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-      if (is.function(F_x)) {
-        cpit <- cpit_dist(y, F_x, a = tt, ...)
-      } else {
-        cpit <- cpit_sample(y, dat, a = tt)
-      }
-      if (lower >= tt) {
-        ind <- y <= lower
-        cpit[ind] <- runif(sum(ind), 0, cpit[ind])
-      }
+      cpit <- sapply(seq_along(y), function(i) cpit_sample(y[i], dat[i, ], a = t[i]))
+      ind <- (lower >= t) & (y <= lower)
+      cpit[ind] <- runif(sum(ind), 0, cpit[ind])
       cpit <- na.omit(cpit[subset])
       rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
-      data.frame(u = u, rat = rat)
-    })
-  } else if (ratio == 'sev') {
-    R <- lapply(t, function(tt) {
-      if (is.function(F_x)) {
+      R <- data.frame(u = u, rat = rat)
+    } else {
+      R <- lapply(t, function(tt) {
+        exc_p <- 1 - F_x(tt, ...)
+        if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
         cpit <- cpit_dist(y, F_x, a = tt, ...)
-      } else {
-        cpit <- cpit_sample(y, dat, a = tt)
-      }
-      if (lower >= tt) {
-        ind <- y <= lower
-        cpit[ind] <- runif(sum(ind), 0, cpit[ind])
-      }
+        if (lower >= tt) {
+          ind <- y <= lower
+          cpit[ind] <- runif(sum(ind), 0, cpit[ind])
+        }
+        cpit <- na.omit(cpit[subset])
+        rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
+        data.frame(u = u, rat = rat)
+      })
+    }
+
+  } else if (ratio == 'sev') {
+    if (var_t) {
+      cpit <- sapply(seq_along(y), function(i) cpit_sample(y[i], dat[i, ], a = t[i]))
+      ind <- (lower >= t) & (y <= lower)
+      cpit[ind] <- runif(sum(ind), 0, cpit[ind])
       cpit <- na.omit(cpit[subset])
       rat <- sapply(u, function(uu) mean(cpit <= uu))
       data.frame(u = u, rat = rat)
-    })
+    } else {
+      R <- lapply(t, function(tt) {
+        cpit <- cpit_dist(y, F_x, a = tt, ...)
+        if (lower >= tt) {
+          ind <- y <= lower
+          cpit[ind] <- runif(sum(ind), 0, cpit[ind])
+        }
+        cpit <- na.omit(cpit[subset])
+        rat <- sapply(u, function(uu) mean(cpit <= uu))
+        data.frame(u = u, rat = rat)
+      })
+    }
+
   } else if (ratio == 'occ') {
-    G_t <- sapply(t, function(tt) mean(y[subset] > tt))
-    F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
-    if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
-    if (qu) t <- 1 - G_t
-    R <- G_t/F_t
-    if (length(t) > 1) R <- data.frame(t = t, rat = R)
+    if (var_t) {
+      G_t <- mean((y > t)[subset])
+      F_t <- 1 - F_x(t, ...)
+      if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
+      if (qu) t <- 1 - G_t
+      R <- G_t/F_t
+    } else {
+      G_t <- sapply(t, function(tt) mean(y[subset] > tt))
+      F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
+      if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
+      if (qu) t <- 1 - G_t
+      R <- G_t/F_t
+      if (length(t) > 1) R <- data.frame(t = t, rat = R)
+    }
+
   }
 
   if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
@@ -226,10 +249,10 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
     } else {
       R <- abs(R$rat - 1)
     }
-    if (length(t) > 1) R <- data.frame(t = t, rat = R)
+    if (length(t) > 1 && !var_t) R <- data.frame(t = t, rat = R)
   } else if (length(t) == 1) {
     R <- R[[1]]
-  } else if (ratio %in% c('com', 'sev')) {
+  } else if (ratio %in% c('com', 'sev') && !var_t) {
     names(R) <- round(t, 2)
   }
 

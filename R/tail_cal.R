@@ -17,6 +17,9 @@
 #'  quantiles of \code{y}; default is \code{FALSE}.
 #' @param subset logical vector of the same length as \code{y}, allowing only a subset
 #'  of the forecasts and observations (where \code{TRUE}) to be assessed.
+#' @param var_t logical specifying whether the observations should each be evaluated
+#'  at different thresholds. Default is \code{FALSE}. If \code{TRUE}, \code{t} must be
+#'  a vector of the same length as \code{y}, and \code{F_x} must be a matrix of samples.
 #' @param ... additional arguments to F_x.
 #'
 #'
@@ -87,12 +90,12 @@ NULL
 #' @export
 tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
                      u = seq(0.01, 0.99, 0.01), lower = -Inf, group = NULL, sup = FALSE, qu = FALSE,
-                     subset = rep(TRUE, length(y)),  ...) {
+                     subset = rep(TRUE, length(y)), var_t = FALSE, ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
   if (is.null(group)) {
     if (type == 'prob') {
-      tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, ...)
+      tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, var_t = FALSE, ...)
     } else if (type == 'marg') {
       tc_marg(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
     }
@@ -103,7 +106,7 @@ tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev'
 }
 
 
-check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset) {
+check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t) {
   if (!is.numeric(y) || !is.vector(y)) stop("'y' must be a numeric value or vector")
   if (any(is.na(y))) stop("'y' contains missing values")
   if (!is.numeric(t) || !is.vector(t)) stop("'t' must be a numeric value or vector")
@@ -123,6 +126,11 @@ check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset) {
     if (nrow(F_x) != length(y)) stop("the dimensions of 'F_x' do not match the dimensions of 'y'")
   } else if (is.vector(F_x)) {
     if (length(y) > 1) stop("the dimensions of 'F_x' do not match the dimensions of 'y'")
+  }
+  if (!is.logical(var_t) || length(var_t) > 1) stop("'var_t' must be either TRUE or FALSE")
+  if (var_t) {
+    if (length(t) != length(y)) stop("when 'var_t' is TRUE, length(t) must be the same as length(y)")
+    if (!is.matrix(F_x)) stop("when 'var_t' is TRUE, F_x must be a matrix of samples")
   }
 }
 

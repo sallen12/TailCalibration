@@ -16,6 +16,7 @@ tail_cal(
   sup = FALSE,
   qu = FALSE,
   subset = rep(TRUE, length(y)),
+  var_t = FALSE,
   ...
 )
 }
@@ -43,6 +44,10 @@ quantiles of \code{y}; default is \code{FALSE}.}
 
 \item{subset}{logical vector of the same length as \code{y}, allowing only a subset
 of the forecasts and observations (where \code{TRUE}) to be assessed.}
+
+\item{var_t}{logical specifying whether the observations should each be evaluated
+at different thresholds. Default is \code{FALSE}. If \code{TRUE}, \code{t} must be
+a vector of the same length as \code{y}, and \code{F_x} must be a matrix of samples.}
 
 \item{...}{additional arguments to F_x.}
 }
