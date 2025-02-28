@@ -39,19 +39,19 @@ t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 
 
 ################################################################################
-### occurrence ratio
+### combined ratio
 
-occ_cl <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, sd = sqrt(2))
-occ_id <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = mu)
-occ_uf <- tc_prob(y, F_uf, t = t_vec, ratio = "occ", qu = T, m = mu, ta = tau)
-occ_sr <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = -mu)
+com_cl <- tc_prob(y, pnorm, t = rd_vec, sd = sqrt(2))
+com_id <- tc_prob(y, pnorm, t = rd_vec, mean = mu)
+com_uf <- tc_prob(y, F_uf, t = rd_vec, m = mu, ta = tau)
+com_sr <- tc_prob(y, pnorm, t = rd_vec, mean = -mu)
 
-occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-occ_uf <- occ_uf |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-occ_sr <- occ_sr |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Climatological")
+com_id <- com_id |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Ideal")
+com_uf <- com_uf |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Unfocused")
+com_sr <- com_sr |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Sign-reversed")
 
-save_plots("occ")
+save_plots("com")
 
 
 ################################################################################
@@ -71,17 +71,18 @@ save_plots("sev")
 
 
 ################################################################################
-### combined ratio
+### occurrence ratio
 
-com_cl <- tc_prob(y, pnorm, t = rd_vec, sd = sqrt(2))
-com_id <- tc_prob(y, pnorm, t = rd_vec, mean = mu)
-com_uf <- tc_prob(y, F_uf, t = rd_vec, m = mu, ta = tau)
-com_sr <- tc_prob(y, pnorm, t = rd_vec, mean = -mu)
+occ_cl <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, sd = sqrt(2))
+occ_id <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = mu)
+occ_uf <- tc_prob(y, F_uf, t = t_vec, ratio = "occ", qu = T, m = mu, ta = tau)
+occ_sr <- tc_prob(y, pnorm, t = t_vec, ratio = "occ", qu = T, mean = -mu)
 
-com_cl <- com_cl |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Climatological")
-com_id <- com_id |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Ideal")
-com_uf <- com_uf |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Unfocused")
-com_sr <- com_sr |> plot_ptc(ratio = "com", names = names, ylims = c(0, 1.02), title = "Sign-reversed")
+occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_uf <- occ_uf |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_sr <- occ_sr |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
 
-save_plots("com")
+save_plots("occ")
+
 

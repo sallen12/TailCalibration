@@ -6,7 +6,7 @@
 ### set up
 
 library(TailCalibration)
-library(evmix)
+library(evd)
 library(ggplot2)
 
 
@@ -40,37 +40,9 @@ t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 
 
 ################################################################################
-### occurrence ratio
-
-occ_cl <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
-occ_id <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta)
-occ_ex <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta/v)
-
-occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-occ_ex <- occ_ex |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
-
-save_plots("occ")
-
-
-################################################################################
-### severity ratio
-
-sev_cl <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", xi = gamma)
-sev_id <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta)
-sev_ex <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta/v)
-
-sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
-sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
-sev_ex <- sev_ex |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
-
-save_plots("sev")
-
-
-################################################################################
 ### combined ratio
 
-com_cl <- tc_prob(y, pgpd, t = rd_vec, xi = gamma)
+com_cl <- tc_prob(y, pgpd, t = rd_vec, shape = gamma)
 com_id <- tc_prob(y, pexp, t = rd_vec, rate = delta)
 com_ex <- tc_prob(y, pexp, t = rd_vec, rate = delta/v)
 
@@ -82,13 +54,41 @@ save_plots("com")
 
 
 ################################################################################
+### severity ratio
+
+sev_cl <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", shape = gamma)
+sev_id <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta)
+sev_ex <- tc_prob(y, pexp, t = rd_vec, ratio = "sev", rate = delta/v)
+
+sev_cl <- sev_cl |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_id <- sev_id |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+sev_ex <- sev_ex |> plot_ptc(ratio = "sev", names = names, ylims = c(0, 1.02), title = "")
+
+save_plots("sev")
+
+
+################################################################################
+### occurrence ratio
+
+occ_cl <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, shape = gamma)
+occ_id <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta)
+occ_ex <- tc_prob(y, pexp, t = t_vec, ratio = "occ", qu = T, rate = delta/v)
+
+occ_cl <- occ_cl |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_id <- occ_id |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+occ_ex <- occ_ex |> plot_ptc(ratio = "occ", ylims = c(0, 2), title = "")
+
+save_plots("occ")
+
+
+################################################################################
 ### conditional combined ratio
 
 n_grp <- 3
 group <- numeric(length(delta))
 for (i in 1:n_grp) group[delta >= quantile(delta, (i - 1)/n_grp)] <- paste0("B", i)
 
-com_cl <- tc_cprob(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
+com_cl <- tc_cprob(y, pgpd, t = t_vec, group = group, qu = T, shape = gamma)
 com_id <- tc_cprob(y, pexp, t = t_vec, group = group, qu = T, rate = delta)
 com_ex <- tc_cprob(y, pexp, t = t_vec, group = group, qu = T, rate = delta/v)
 

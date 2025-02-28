@@ -2,14 +2,14 @@
 ###### examples
 
 library(TailCalibration)
-library(evmix)
+library(evd)
 library(ggplot2)
 
 set.seed(298301)
 
 
 ################################################################################
-###### Example 14: Non-random
+###### Example 15: Non-random forecaster
 
 mu2 <- 0.5
 sig2 <- 0.9
@@ -45,12 +45,13 @@ numer <- sapply(u, function(uu) pgpd(t + F_t_inv(uu, t), 0, 1, 1/4) - pgpd(t, 0,
 ind <- c(1, 201, 401, 601)
 
 
-##### occurrence ratio
-rat <- pgpd(t, 0, 1, 1/4, lower.tail = FALSE) / denom
+##### combined ratio
+rat <- numer[ind, ]/denom[ind]
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+names(cal) <- t[ind]
 
-df <- data.frame(t = t, r = rat)
-plot_ptc(df, ratio = "occ", ylims = c(0, 2))
-ggsave("plots/ex_non_occ.png", width = 3.2, height = 3)
+plot_ptc(cal)
+ggsave("plots/ex_non_com.png", width = 3.2, height = 3)
 
 
 ##### severity ratio
@@ -62,17 +63,17 @@ plot_ptc(cal, ratio = "sev")
 ggsave("plots/ex_non_sev.png", width = 3.2, height = 3)
 
 
-##### combined ratio
-rat <- numer[ind, ]/denom[ind]
-cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
-names(cal) <- t[ind]
+##### occurrence ratio
+rat <- pgpd(t, 0, 1, 1/4, lower.tail = FALSE) / denom
 
-plot_ptc(cal)
-ggsave("plots/ex_non_com.png", width = 3.2, height = 3)
+df <- data.frame(t = t, r = rat)
+plot_ptc(df, ratio = "occ", ylims = c(0, 2))
+ggsave("plots/ex_non_occ.png", width = 3.2, height = 3)
+
 
 
 ################################################################################
-###### Example 15: Uniform unfocused
+###### Example 16: Uniform unfocused forecaster
 
 u <- seq(0, 1, 0.01)
 t <- seq(-1, 0.99, 0.01)
@@ -106,12 +107,12 @@ numer <- t(sapply(t, Q_t, u = u))
 ind <- c(1, 51, 101, 196)
 
 
-##### occurrence ratio
-rat <- G_t / denom
+##### combined ratio
+rat <- G_t[ind] * numer[ind, ]/denom[ind]
+cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
 
-df <- data.frame(t = t, r = rat)
-plot_ptc(df, ratio = "occ", ylims = c(-0.2, 2.2))
-ggsave("plots/ex_uuf_occ.png", width = 3.2, height = 3)
+plot_ptc(cal, ylims = c(0, 1.4), names = as.factor(t[ind]))
+ggsave("plots/ex_uuf_com.png", width = 3.2, height = 3)
 
 
 ##### severity ratio
@@ -122,16 +123,17 @@ plot_ptc(cal, ratio = "sev", names = as.factor(t[ind]))
 ggsave("plots/ex_uuf_sev.png", width = 3.2, height = 3)
 
 
-##### combined ratio
-rat <- G_t[ind] * numer[ind, ]/denom[ind]
-cal <- lapply(1:length(ind), function(i) data.frame(u = u, rat = rat[i, ]))
+##### occurrence ratio
+rat <- G_t / denom
 
-plot_ptc(cal, ylims = c(0, 1.4), names = as.factor(t[ind]))
-ggsave("plots/ex_uuf_com.png", width = 3.2, height = 3)
+df <- data.frame(t = t, r = rat)
+plot_ptc(df, ratio = "occ", ylims = c(-0.2, 2.2))
+ggsave("plots/ex_uuf_occ.png", width = 3.2, height = 3)
+
 
 
 ################################################################################
-###### Example 17: Optimistic
+###### Example 18: Optimistic forecaster
 
 N <- 1e6
 gamma <- 1/4
@@ -140,7 +142,7 @@ delta <- rgamma(N, shape = 1/gamma, rate = 1/gamma)
 u <- runif(N)
 x1 <- qexp(u, delta)
 x2 <- qexp(u, delta/2)
-L <- rgpd(N, xi = gamma/2)
+L <- rgpd(N, shape = gamma/2)
 
 y <- pmax(pmin(x1, x2), pmin(pmax(x1, x2), L))
 
@@ -151,26 +153,26 @@ names <- c(0, rd_q)
 t_vec <- quantile(y, c(seq(0, 0.99, 0.01), 0.999))
 
 
-##### unconditional diagnostic plots
+##### unconditional combined ratio diagnostic plot
 
-occ <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, xi = gamma)
-sev <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", qu = T, xi = gamma)
-com <- tc_prob(y, pgpd, t = rd_vec, qu = T, xi = gamma)
+com <- tc_prob(y, pgpd, t = rd_vec, qu = T, shape = gamma)
+occ <- tc_prob(y, pgpd, t = t_vec, ratio = "occ", qu = T, shape = gamma)
+sev <- tc_prob(y, pgpd, t = rd_vec, ratio = "sev", qu = T, shape = gamma)
 
+com <- com |> plot_ptc(names = names, ylims = c(0, 1.3), title = "")
 occ <- occ |> plot_ptc(ratio = "occ", ylims = c(0, 2))
 sev <- sev |> plot_ptc(ratio = "sev", names = names)
-com <- com |> plot_ptc(names = names, ylims = c(0, 1.3), title = "")
 
 ggsave(plot = com, "plots/ex_opt_com_1e6.png", width = 3, height = 3)
 
 
-##### conditional combined diagnostic plot
+##### conditional combined ratio diagnostic plots
 
 n_grp <- 3
 group <- numeric(length(delta))
 for (i in 1:n_grp) group[delta >= quantile(delta, (i - 1)/n_grp)] <- paste0("B", i)
 
-com_div <- tc_cprob(y, pgpd, t = t_vec, group = group, qu = T, xi = gamma)
+com_div <- tc_cprob(y, pgpd, t = t_vec, group = group, qu = T, shape = gamma)
 
 com_div[["B1"]] |> plot_tc_sup(ylab = NULL, ylims = c(-0.1, 2.4), title = expression(B[1]))
 ggsave("plots/ex_opt_com_div_1e6_B1.png", width = 3, height = 3)
