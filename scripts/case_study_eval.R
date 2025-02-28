@@ -12,7 +12,7 @@ library(evd)
 library(ggplot2)
 
 # load forecast data
-fc_dat <- readRDS("scripts/cs_fc_data.RDS")
+fc_dat <- readRDS(here::here("scripts", "cs_fc_data.RDS"))
 
 
 # remove missing data

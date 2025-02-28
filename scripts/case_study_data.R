@@ -17,7 +17,7 @@ library(pracma)
 ################################################################################
 ## load data
 
-path <- "C:/Users/sa20i493/Documents/Data/EUMetNet/tp6_station_"
+path <- here::here("data", "tp6_station_")
 load_data <- function(path, na_prop = 0) {
 
   ## training data
