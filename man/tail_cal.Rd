@@ -17,6 +17,7 @@ tail_cal(
   qu = FALSE,
   subset = rep(TRUE, length(y)),
   var_t = FALSE,
+  test = FALSE,
   ...
 )
 }
@@ -48,6 +49,9 @@ of the forecasts and observations (where \code{TRUE}) to be assessed.}
 \item{var_t}{logical specifying whether the observations should each be evaluated
 at different thresholds. Default is \code{FALSE}. If \code{TRUE}, \code{t} must be
 a vector of the same length as \code{y}, and \code{F_x} must be a matrix of samples.}
+
+\item{test}{logical specifying whether a test statistic for calibration is to be
+returned. Default is \code{FALSE}.}
 
 \item{...}{additional arguments to F_x.}
 }
@@ -247,10 +251,16 @@ functionality in \code{tc_prob} or \code{tc_marg}, respectively.
 Data frame or list of data frames (for each threshold \code{t}) containing the
 requested ratio quantifying tail calibration.
 
-If \code{sup = TRUE} or \code{ratio == 'occ'}, a data frame is returned that contains
-the thresholds \code{t} along
+If \code{sup = TRUE}, \code{test = TRUE}, or \code{ratio == 'occ'},
+a data frame is returned that contains the thresholds \code{t} along
 with the corresponding measure of tail calibration at this threshold.
-If \code{t} is a single numeric, then \code{sup = TRUE} returns a single numeric value.
+
+If \code{var_t = TRUE}, then, for one data frame is returned, containing the
+requested tail calibration ratio. If \code{sup = TRUE}, \code{test = TRUE}, or
+\code{ratio == 'occ'}, this returns a single value.
+
+Similarly, if \code{t} is a single numeric, and \code{sup = TRUE}, \code{test = TRUE}, or
+\code{ratio == 'occ'}
 }
 
 \section{References}{

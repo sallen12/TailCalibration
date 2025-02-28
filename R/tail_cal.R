@@ -20,6 +20,8 @@
 #' @param var_t logical specifying whether the observations should each be evaluated
 #'  at different thresholds. Default is \code{FALSE}. If \code{TRUE}, \code{t} must be
 #'  a vector of the same length as \code{y}, and \code{F_x} must be a matrix of samples.
+#' @param test logical specifying whether a test statistic for calibration is to be
+#'  returned. Default is \code{FALSE}.
 #' @param ... additional arguments to F_x.
 #'
 #'
@@ -42,7 +44,21 @@
 #' @inheritSection tc_cond Details
 #'
 #'
-#' @inheritSection tc_prob Value
+#' @section Value:
+#'
+#' Data frame or list of data frames (for each threshold \code{t}) containing the
+#' requested ratio quantifying tail calibration.
+#'
+#' If \code{sup = TRUE}, \code{test = TRUE}, or \code{ratio == 'occ'},
+#' a data frame is returned that contains the thresholds \code{t} along
+#' with the corresponding measure of tail calibration at this threshold.
+#'
+#' If \code{var_t = TRUE}, then, for one data frame is returned, containing the
+#' requested tail calibration ratio. If \code{sup = TRUE}, \code{test = TRUE}, or
+#' \code{ratio == 'occ'}, this returns a single value.
+#'
+#' Similarly, if \code{t} is a single numeric, and \code{sup = TRUE}, \code{test = TRUE}, or
+#' \code{ratio == 'occ'}
 #'
 #'
 #' @seealso \code{\link{tc_prob}} \code{\link{tc_marg}}
@@ -90,12 +106,12 @@ NULL
 #' @export
 tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
                      u = seq(0.01, 0.99, 0.01), lower = -Inf, group = NULL, sup = FALSE, qu = FALSE,
-                     subset = rep(TRUE, length(y)), var_t = FALSE, ...) {
+                     subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
   if (is.null(group)) {
     if (type == 'prob') {
-      tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, var_t = FALSE, ...)
+      tc_prob(y, F_x, t, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test, ...)
     } else if (type == 'marg') {
       tc_marg(y, F_x, t, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
     }
@@ -106,7 +122,7 @@ tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev'
 }
 
 
-check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t) {
+check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t = FALSE, test = FALSE) {
   if (!is.numeric(y) || !is.vector(y)) stop("'y' must be a numeric value or vector")
   if (any(is.na(y))) stop("'y' contains missing values")
   if (!is.numeric(t) || !is.vector(t)) stop("'t' must be a numeric value or vector")
@@ -118,6 +134,8 @@ check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t) {
       warning("the number of unique elements in 'group' is large relative to the number of elements in 'y'")
   }
   if (!is.logical(sup) || length(sup) > 1) stop("'sup' must be either TRUE or FALSE")
+  if (!is.logical(test) || length(test) > 1) stop("'test' must be either TRUE or FALSE")
+  if (sup && test) stop("'sup' and 'test' cannot both be TRUE")
   if (!is.logical(qu) || length(qu) > 1) stop("'qu' must be either TRUE or FALSE")
   if (!is.logical(subset) || !is.vector(subset) || length(subset) != length(y))
     stop("'subset' must be a logical value or vector of the same length as 'y'")
@@ -129,8 +147,7 @@ check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t) {
   }
   if (!is.logical(var_t) || length(var_t) > 1) stop("'var_t' must be either TRUE or FALSE")
   if (var_t) {
-    if (length(t) != length(y)) stop("when 'var_t' is TRUE, length(t) must be the same as length(y)")
-    if (!is.matrix(F_x)) stop("when 'var_t' is TRUE, F_x must be a matrix of samples")
+    if (!(length(t) %in% c(1, length(y)))) stop("when 'var_t' is TRUE, length(t) must be the same as length(y) (or 1)")
   }
 }
 
