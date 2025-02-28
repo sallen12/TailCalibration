@@ -63,13 +63,13 @@ NULL
 #' @export
 tc_cond <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev', 'occ'),
                     u = seq(0.01, 0.99, 0.01), group = rep(1, length(y)), lower = -Inf,
-                    sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)),  ...) {
+                    sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
   type <- match.arg(type)
   ratio <- match.arg(ratio)
   if (type == 'prob') {
-    tc_cprob(y, F_x, t, group = group, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, ...)
+    tc_cprob(y, F_x, t, group = group, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test, ...)
   } else if (type == 'marg') {
-    tc_cmarg(y, F_x, t, group = group, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, ...)
+    tc_cmarg(y, F_x, t, group = group, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test, ...)
   }
 }
 
@@ -77,8 +77,8 @@ tc_cond <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev',
 #' @rdname tc_cond
 #' @export
 tc_cprob <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
-                     lower = -Inf, sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = group, sup = sup, qu = qu, subset = subset)
+                     lower = -Inf, sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
+  check_tc_inputs(y, F_x, t, u = u, group = group, lower = lower, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test)
   ratio <- match.arg(ratio)
 
   grps <- unique(group)
@@ -98,8 +98,8 @@ tc_cprob <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0
 #' @rdname tc_cond
 #' @export
 tc_cmarg <- function(y, F_x, t, group, ratio = c("com", "sev", "occ"), u = seq(0, 1, 0.01),
-                     sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = group, sup = sup, qu = qu, subset = subset)
+                     sup = TRUE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
+  check_tc_inputs(y, F_x, t, u = u, group = group, lower = NULL, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test)
   ratio <- match.arg(ratio)
 
   grps <- unique(group)
