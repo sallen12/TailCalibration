@@ -10,6 +10,8 @@ library(ncdf4)
 library(zoo)
 library(crch)
 library(ggplot2)
+library(evd)
+library(pracma)
 
 
 ################################################################################
@@ -263,7 +265,7 @@ get_test_data <- function(test_obs, test_fc, test_times, stat_ids, lt, st) {
 }
 
 # wrapper to fit emos models using crch
-fit_emos <- function(trai, test, sd_aug = 0.1, dist = "logistic") {
+fit_emos_crch <- function(trai, test, dist = "logistic") {
   fit <- tryCatch(
     {
       fit <- crch(obs ~ ens.mu | ens.sd,
@@ -290,18 +292,129 @@ fit_emos <- function(trai, test, sd_aug = 0.1, dist = "logistic") {
   pred
 }
 
+# wrapper to fit emos model with GEV
+crps_cgev <- function(y, location, scale, shape, eps = 0.01){
+  if (shape >= 1) {
+    return(1000)
+  } else if(abs(shape) > eps){
+    p0 <- py <- NA*numeric(length(y))
+    na_ind <- !is.na(y)
+    p0[na_ind] <- pgev(0, loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    py[na_ind] <- pgev(y[na_ind], loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    p0[p0 < 1e-10] <- 1e-10
+    py[py < 1e-10] <- 1e-10
 
-# estimate emos parameters at each station
-emos_preds <- lapply(seq_along(stat_ids), function(j) {
+    gamma_1 <- gamma_2 <- NA*numeric(length(y))
+    gamma_1[na_ind] <- sapply(py[na_ind], function(x){gammainc(-log(x), 1 - shape)[1]})
+    gamma_2[na_ind] <- sapply(p0[na_ind], function(x){gammainc(-2*log(x), 1 - shape)[1]})
+
+    crps1 <- (location - y)*(1 - 2*py)
+    crps2 <- location*(p0^2)
+    crps3 <- 2*(scale/shape)*(1 - py - gamma_1)
+    crps4 <- (scale/shape)*(1 - (p0^2) - (2^shape)*gamma_2)
+
+    crps <- crps1 + crps2 - crps3 + crps4
+  }else{
+    shape_0 <- shape
+
+    shape <- -eps
+    p0 <- py <- NA*numeric(length(y))
+    na_ind <- !is.na(y)
+    p0[na_ind] <- pgev(0, loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    py[na_ind] <- pgev(y[na_ind], loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    p0[p0 < 1e-10] <- 1e-10
+    py[py < 1e-10] <- 1e-10
+
+    gamma_1 <- gamma_2 <- NA*numeric(length(y))
+    gamma_1[na_ind] <- sapply(py[na_ind], function(x){gammainc(-log(x), 1 - shape)[1]})
+    gamma_2[na_ind] <- sapply(p0[na_ind], function(x){gammainc(-2*log(x), 1 - shape)[1]})
+
+    crps1 <- (location - y)*(1 - 2*py)
+    crps2 <- location*(p0^2)
+    crps3 <- 2*(scale/shape)*(1 - py - gamma_1)
+    crps4 <- (scale/shape)*(1 - (p0^2) - (2^shape)*gamma_2)
+
+    crps_neg <- crps1 + crps2 - crps3 + crps4
+
+
+    shape <- eps
+    p0 <- py <- NA*numeric(length(y))
+    na_ind <- !is.na(y)
+    p0[na_ind] <- pgev(0, loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    py[na_ind] <- pgev(y[na_ind], loc = location[na_ind], scale = scale[na_ind], shape = shape)
+    p0[p0 < 1e-10] <- 1e-10
+    py[py < 1e-10] <- 1e-10
+
+    gamma_1 <- gamma_2 <- NA*numeric(length(y))
+    gamma_1[na_ind] <- sapply(py[na_ind], function(x){gammainc(-log(x), 1 - shape)[1]})
+    gamma_2[na_ind] <- sapply(p0[na_ind], function(x){gammainc(-2*log(x), 1 - shape)[1]})
+
+    crps1 <- (location - y)*(1 - 2*py)
+    crps2 <- location*(p0^2)
+    crps3 <- 2*(scale/shape)*(1 - py - gamma_1)
+    crps4 <- (scale/shape)*(1 - (p0^2) - (2^shape)*gamma_2)
+
+    crps_pos <- crps1 + crps2 - crps3 + crps4
+
+
+    crps <- ((eps - shape_0)*crps_neg + (eps + shape_0)*crps_pos)/(2*eps)
+  }
+  return(crps)
+}
+crps_gev_obj <- function(par, y, ens.mu, ens.sd) {
+  mu <- par[1] + par[2]*ens.mu
+  sig <- (par[3]^2) + (par[4]^2)*ens.sd
+  shape <- par[5]^2
+
+  crps_cgev(y, location = mu, scale = sig, shape = shape) |> mean()
+}
+fit_emos_cgev <- function(trai, test) {
+
+  outpar <- optim(c(1, 1, 1, 1, 0.5), crps_gev_obj, y=trai$obs, ens.mu=trai$ens.mu, ens.sd=trai$ens.sd)$par
+  mu <- outpar[1] + outpar[2]*test$ens.mu
+  sig <- (outpar[3]^2) + (outpar[4]^2)*test$ens.sd
+  shape <- outpar[5]^2
+
+  pred <- cbind(as.numeric(mu), as.numeric(sig), as.numeric(shape))
+  colnames(pred) <- c("location", "scale", "shape")
+  pred
+}
+
+
+# estimate censored logistic emos parameters at each station
+emos_preds_cl <- lapply(seq_along(stat_ids), function(j) {
   st <- stat_ids[j]
   print(paste0('Forecast at Station: ', st, ' (', j, ' from ', length(stat_ids), ')'))
   trai <- get_train_data(train_obs, train_fc, train_times, train_years, stat_ids, lead_times[lt], st)
   test <- get_test_data(test_obs, test_fc, test_times, stat_ids, lead_times[lt], st)
-  fit_emos(trai, test)
+  fit_emos_crch(trai, test)
 })
-emos_preds <- simplify2array(emos_preds)
+emos_preds_cl <- simplify2array(emos_preds_cl)
 
-fc_emos <- list(F_x = F_x, location = t(emos_preds[, 1, ]), scale = t(emos_preds[, 2, ]))
+fc_emos_cl <- list(F_x = F_x, location = t(emos_preds_cl[, 1, ]), scale = t(emos_preds_cl[, 2, ]))
+
+
+# estimate censored GEV emos parameters at each station
+emos_preds_cgev <- lapply(seq_along(stat_ids), function(j) {
+  st <- stat_ids[j]
+  print(paste0('Forecast at Station: ', st, ' (', j, ' from ', length(stat_ids), ')'))
+  trai <- get_train_data(train_obs, train_fc, train_times, train_years, stat_ids, lead_times[lt], st)
+  test <- get_test_data(test_obs, test_fc, test_times, stat_ids, lead_times[lt], st)
+  fit_emos_cgev(trai, test)
+})
+emos_preds_cgev <- simplify2array(emos_preds_cgev)
+
+F_x <- function(q, location, scale, shape) {
+  if (length(q) == 1) q <- rep(q, length(location))
+  out <- sapply(seq_along(location), function(i) pgev(q[i], location[i], scale[i], shape[i]))
+  out[q < 0] <- 0
+  return(out)
+}
+
+fc_emos_cgev <- list(F_x = F_x,
+                     location = t(emos_preds_cgev[, 1, ]),
+                     scale = t(emos_preds_cgev[, 2, ]),
+                     shape = t(emos_preds_cgev[, 3, ]))
 
 
 ################################################################################
@@ -314,7 +427,7 @@ aux_data <- list(obs = test_obs[, lt, ],
                  time = test_times,
                  lead = lead_times[lt])
 
-fc_dat <- list(ifs = fc_ifs, smooth = fc_smooth, emos = fc_emos, aux_data = aux_data)
+fc_dat <- list(ifs = fc_ifs, smooth = fc_smooth, emos_cl = fc_emos_cl, emos_cgev = fc_emos_cgev, aux_data = aux_data)
 
 saveRDS(fc_dat, file = "scripts/cs_fc_data.RDS")
 
