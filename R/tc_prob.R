@@ -172,13 +172,14 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
 
     if (ratio == 'com') {
 
+      n <- sum(subset)
       exc_p <- 1 - F_x(t, ...)
-      if (length(exc_p) > 1) exc_p <- sum(exc_p[subset])
+      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
       cpit <- cpit_dist(y, F_x, a = t, ...)
       ind <- (lower > t) & (y <= lower)
       cpit[ind] <- runif(sum(ind), 0, cpit[ind])
       cpit <- na.omit(cpit[subset])
-      rat <- sapply(u, function(uu) sum(cpit <= uu)/exc_p)
+      rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
       R <- data.frame(u = u, rat = rat)
 
     } else if (ratio == 'sev') {
@@ -198,7 +199,7 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
 
       G_t <- mean((y > t)[subset])
       F_t <- 1 - F_x(t, ...)
-      F_t <- mean(F_t[subset])
+      if (length(F_t) > 1) F_t <- mean(F_t[subset])
       if (test) {
         R <- binom.test(G_t * sum(subset), sum(subset), F_t)$p.value
       } else {
@@ -223,9 +224,15 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
 
     if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
 
-    if (ratio == "occ" || sup || test) {
+    if (ratio == 'occ' || sup || test) {
       R <- R |> unlist() |> as.vector()
-      if (length(t) > 1) R <- data.frame(t = t, rat = R)
+      if (length(t) > 1) {
+        if (ratio == 'occ' && sup) {
+          R <- max(R)
+        } else {
+          R <- data.frame(t = t, rat = R)
+        }
+      }
     } else {
       if (length(t) > 1) {
         names(R) <- round(t, 2)

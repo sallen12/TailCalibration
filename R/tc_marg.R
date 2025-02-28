@@ -166,9 +166,8 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
     if (ratio == 'com') {
 
       F_t <- F_x(t, ...)
-      exc_p <- 1 - F_t
-      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
       if (length(F_t) == 1) F_t <- rep(F_t, length(y))
+      exc_p <- mean(1 - F_t[subset])
       ind <- (y > t) & subset
       if (any(t == -Inf)) {
         dif <- sapply(u, function(uu) {
@@ -242,7 +241,13 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
 
     if (ratio == "occ" || sup || test) {
       R <- R |> unlist() |> as.vector()
-      if (length(t) > 1) R <- data.frame(t = t, rat = R)
+      if (length(t) > 1) {
+        if (ratio == 'occ' && sup) {
+          R <- max(R)
+        } else {
+          R <- data.frame(t = t, rat = R)
+        }
+      }
     } else {
       if (length(t) > 1) {
         names(R) <- round(t, 2)
