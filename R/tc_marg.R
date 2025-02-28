@@ -6,7 +6,7 @@
 #'
 #' @inheritParams tail_cal
 #'
-#' @inheritSection tc_prob Value
+#' @inheritSection tail_cal Value
 #'
 #'
 #' @section Details:
@@ -140,7 +140,7 @@
 #' lo <- mu > 1
 #'
 #' mtc <- tc_marg(y, F_x, t = c(-2, 0, 2), mu1 = mu1, mu2 = mu2, lo = lo)
-#'
+#' plot_mtc(mtc)
 #'
 #' @name tc_marg
 NULL
@@ -149,8 +149,8 @@ NULL
 #' @rdname tc_marg
 #' @export
 tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.1),
-                   sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset)
+                   sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
+  check_tc_inputs(y, F_x, t, u = u, group = NULL, lower = NULL, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test)
   ratio <- match.arg(ratio)
   if (!is.function(F_x)) {
     dat <- F_x
@@ -161,15 +161,16 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
     }
   }
 
-  n <- sum(subset)
+  if (var_t) {
 
-  if (ratio == 'com') {
-    R <- lapply(t, function(tt) {
-      F_t <- F_x(tt, ...)
+    if (ratio == 'com') {
+
+      F_t <- F_x(t, ...)
       exc_p <- 1 - F_t
       if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-      ind <- (y > tt) & subset
-      if (tt == -Inf) {
+      if (length(F_t) == 1) F_t <- rep(F_t, length(y))
+      ind <- (y > t) & subset
+      if (any(t == -Inf)) {
         dif <- sapply(u, function(uu) {
           cprob <- mean(y[subset] <= uu)
           Fhat_t <- F_x(uu, ...)
@@ -178,19 +179,20 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
         })
       } else {
         dif <- sapply(u, function(uu) {
-          cprob <- mean(y[subset] > tt & y[subset] <= (tt + uu))
-          Fhat_t <- (F_x(uu + tt, ...) - F_t)/(1 - F_t)
+          cprob <- mean(y[subset] > t & y[subset] <= (t + uu))
+          Fhat_t <- (F_x(uu + t, ...) - F_t)/(1 - F_t)
           Fhat_t <- mean(Fhat_t[ind])
           (cprob/exc_p) - Fhat_t
         })
       }
-      data.frame(u = u, rat = dif)
-    })
-  } else if (ratio == 'sev') {
-    R <- lapply(t, function(tt) {
-      F_t <- F_x(tt, ...)
-      ind <- (y > tt) & subset
-      if (tt == -Inf) {
+
+      R <- data.frame(u = u, rat = dif)
+
+    } else if (ratio == 'sev') {
+
+      F_t <- F_x(t, ...)
+      ind <- (y > t) & subset
+      if (any(t == -Inf)) {
         dif <- sapply(u, function(uu) {
           cprob <- mean(y[ind] <= uu)
           Fhat_t <- F_x(uu, ...)
@@ -199,36 +201,56 @@ tc_marg <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0, 10, 0.
         })
       } else {
         dif <- sapply(u, function(uu) {
-          cprob <- mean(y[ind] <= (tt + uu))
-          Fhat_t <- (F_x(uu + tt, ...) - F_t)/(1 - F_t)
+          cprob <- mean(y[ind] <= (t + uu))
+          Fhat_t <- (F_x(uu + t, ...) - F_t)/(1 - F_t)
           Fhat_t <- mean(Fhat_t[ind])
           cprob - Fhat_t
         })
       }
-      data.frame(u = u, rat = dif)
-    })
-  } else if (ratio == 'occ') {
-    G_t <- sapply(t, function(tt) mean(y[subset] > tt))
-    F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
-    if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
-    if (qu) t <- 1 - G_t
-    R <- G_t/F_t
-    if (length(t) > 1) R <- data.frame(t = t, rat = R)
-  }
 
-  if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
+      R <- data.frame(u = u, rat = dif)
 
-  if (sup) {
-    if (ratio %in% c('com', 'sev')) {
-      R <- sapply(R, function(r) max(abs(r$rat)))
-    } else {
-      R <- abs(R$rat - 1)
+    } else if (ratio == 'occ') {
+
+      G_t <- mean((y > t)[subset])
+      F_t <- 1 - F_x(t, ...)
+      F_t <- mean(F_t[subset])
+      if (test) {
+        R <- binom.test(G_t * sum(subset), sum(subset), F_t)$p.value
+      } else {
+        R <- G_t/F_t
+      }
+
     }
-    if (length(t) > 1) R <- data.frame(t = t, rat = R)
-  } else if (length(t) == 1) {
-    R <- R[[1]]
-  } else if (ratio %in% c('com', 'sev')) {
-    names(R) <- round(t, 2)
+
+    if (sup) {
+      if (ratio %in% c('com', 'sev')) {
+        R <- max(abs(R$rat))
+      } else {
+        R <- abs(R - 1)
+      }
+    }
+
+
+  } else {
+
+    R <- lapply(t, function(tt) {
+      tc_marg(y, F_x, tt, ratio = ratio, u = u, sup = sup, qu = qu, subset = subset, var_t = TRUE, test = test, ...)
+    })
+
+    if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
+
+    if (ratio == "occ" || sup || test) {
+      R <- R |> unlist() |> as.vector()
+      if (length(t) > 1) R <- data.frame(t = t, rat = R)
+    } else {
+      if (length(t) > 1) {
+        names(R) <- round(t, 2)
+      } else {
+        R <- R[[1]]
+      }
+    }
+
   }
 
   return(R)

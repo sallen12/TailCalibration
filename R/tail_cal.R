@@ -122,7 +122,7 @@ tail_cal <- function(y, F_x, t, type = c('prob', 'marg'), ratio = c('com', 'sev'
 }
 
 
-check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t = FALSE, test = FALSE) {
+check_tc_inputs <- function(y, F_x, t, u, group, lower, sup, qu, subset, var_t, test) {
   if (!is.numeric(y) || !is.vector(y)) stop("'y' must be a numeric value or vector")
   if (any(is.na(y))) stop("'y' contains missing values")
   if (!is.numeric(t) || !is.vector(t)) stop("'t' must be a numeric value or vector")
@@ -132,6 +132,10 @@ check_tc_inputs <- function(y, F_x, t, u, group, sup, qu, subset, var_t = FALSE,
       stop("'group' must be a vector of the same length as 'y'")
     if (length(unique(group)) > length(y)/2)
       warning("the number of unique elements in 'group' is large relative to the number of elements in 'y'")
+  }
+  if (!is.null(lower)) {
+    if (!is.numeric(lower) || !is.vector(lower)) stop("'lower' must be a numeric value or vector")
+    if (!(length(lower) %in% c(1, length(y)))) stop("length(lower) must be the same as length(y) (or 1)")
   }
   if (!is.logical(sup) || length(sup) > 1) stop("'sup' must be either TRUE or FALSE")
   if (!is.logical(test) || length(test) > 1) stop("'test' must be either TRUE or FALSE")

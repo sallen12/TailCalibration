@@ -157,7 +157,7 @@ NULL
 #' @export
 tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.99, 0.01),
                     lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset, var_t, test)
+  check_tc_inputs(y, F_x, t, u = u, group = NULL, lower = lower, sup = sup, qu = qu, subset = subset, var_t = var_t, test = test)
   ratio <- match.arg(ratio)
   if (!is.function(F_x)) {
     dat <- F_x
@@ -227,7 +227,11 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
       R <- R |> unlist() |> as.vector()
       if (length(t) > 1) R <- data.frame(t = t, rat = R)
     } else {
-      names(R) <- round(t, 2)
+      if (length(t) > 1) {
+        names(R) <- round(t, 2)
+      } else {
+        R <- R[[1]]
+      }
     }
 
   }
