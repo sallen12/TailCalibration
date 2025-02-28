@@ -7,8 +7,6 @@ This repository contains R code to evaluate the tail calibration of probabilisti
 > ArXiv preprint.
 > [arxiv.org/abs/2407.03167](https://arxiv.org/abs/2407.03167)
 
-The results in this paper can be reproduced by sourcing the files in the scripts folder.
-
 ## Forecast calibration
 
 Loosely speaking, probabilistic forecasts are _calibrated_ if they align statistically with the corresponding outcomes. Calibration is a necessary property for forecasts to be considered trustworthy. 
