@@ -3,6 +3,3 @@
 .RData
 .Ruserdata
 .Rbuildignore
-*.png
-inst/doc
-scripts/pres_plots.R
