@@ -7,15 +7,7 @@
 #' @inheritParams tail_cal
 #'
 #'
-#' @section Value:
-#'
-#' Data frame or list of data frames (for each threshold \code{t}) containing the
-#' requested ratio quantifying tail calibration.
-#'
-#' If \code{sup = TRUE} or \code{ratio == 'occ'}, a data frame is returned that contains
-#' the thresholds \code{t} along
-#' with the corresponding measure of tail calibration at this threshold.
-#' If \code{t} is a single numeric, then \code{sup = TRUE} returns a single numeric value.
+#' @inheritSection tail_cal Value
 #'
 #'
 #' @section Details:
@@ -164,8 +156,8 @@ NULL
 #' @rdname tc_prob
 #' @export
 tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.99, 0.01),
-                    lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, ...) {
-  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset, var_t)
+                    lower = -Inf, sup = FALSE, qu = FALSE, subset = rep(TRUE, length(y)), var_t = FALSE, test = FALSE, ...) {
+  check_tc_inputs(y, F_x, t, u = u, group = NULL, sup = sup, qu = qu, subset = subset, var_t, test)
   ratio <- match.arg(ratio)
   if (!is.function(F_x)) {
     dat <- F_x
@@ -176,84 +168,68 @@ tc_prob <- function(y, F_x, t, ratio = c('com', 'sev', 'occ'), u = seq(0.01, 0.9
     }
   }
 
-  if (ratio == 'com') {
-    n <- sum(subset)
-    if (var_t) {
+  if (var_t) {
+
+    if (ratio == 'com') {
+
       exc_p <- 1 - F_x(t, ...)
-      if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-      cpit <- sapply(seq_along(y), function(i) cpit_sample(y[i], dat[i, ], a = t[i]))
-      ind <- (lower >= t) & (y <= lower)
+      if (length(exc_p) > 1) exc_p <- sum(exc_p[subset])
+      cpit <- cpit_dist(y, F_x, a = t, ...)
+      ind <- (lower > t) & (y <= lower)
       cpit[ind] <- runif(sum(ind), 0, cpit[ind])
       cpit <- na.omit(cpit[subset])
-      rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
+      rat <- sapply(u, function(uu) sum(cpit <= uu)/exc_p)
       R <- data.frame(u = u, rat = rat)
-    } else {
-      R <- lapply(t, function(tt) {
-        exc_p <- 1 - F_x(tt, ...)
-        if (length(exc_p) > 1) exc_p <- mean(exc_p[subset])
-        cpit <- cpit_dist(y, F_x, a = tt, ...)
-        if (lower >= tt) {
-          ind <- y <= lower
-          cpit[ind] <- runif(sum(ind), 0, cpit[ind])
-        }
-        cpit <- na.omit(cpit[subset])
-        rat <- sapply(u, function(uu) sum(cpit <= uu)/(n*exc_p))
-        data.frame(u = u, rat = rat)
-      })
-    }
 
-  } else if (ratio == 'sev') {
-    if (var_t) {
-      cpit <- sapply(seq_along(y), function(i) cpit_sample(y[i], dat[i, ], a = t[i]))
-      ind <- (lower >= t) & (y <= lower)
+    } else if (ratio == 'sev') {
+
+      cpit <- cpit_dist(y, F_x, a = t, ...)
+      ind <- (lower > t) & (y <= lower)
       cpit[ind] <- runif(sum(ind), 0, cpit[ind])
       cpit <- na.omit(cpit[subset])
-      rat <- sapply(u, function(uu) mean(cpit <= uu))
-      data.frame(u = u, rat = rat)
-    } else {
-      R <- lapply(t, function(tt) {
-        cpit <- cpit_dist(y, F_x, a = tt, ...)
-        if (lower >= tt) {
-          ind <- y <= lower
-          cpit[ind] <- runif(sum(ind), 0, cpit[ind])
-        }
-        cpit <- na.omit(cpit[subset])
+      if (test) {
+        R <- ks.test(cpit, punif)$p.value
+      } else {
         rat <- sapply(u, function(uu) mean(cpit <= uu))
-        data.frame(u = u, rat = rat)
-      })
-    }
+        R <- data.frame(u = u, rat = rat)
+      }
 
-  } else if (ratio == 'occ') {
-    if (var_t) {
+    } else if (ratio == 'occ') {
+
       G_t <- mean((y > t)[subset])
       F_t <- 1 - F_x(t, ...)
-      if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
-      if (qu) t <- 1 - G_t
-      R <- G_t/F_t
-    } else {
-      G_t <- sapply(t, function(tt) mean(y[subset] > tt))
-      F_t <- sapply(t, function(tt) 1 - F_x(tt, ...))
-      if (is.matrix(F_t)) F_t <- colMeans(F_t[subset, ])
-      if (qu) t <- 1 - G_t
-      R <- G_t/F_t
+      F_t <- mean(F_t[subset])
+      if (test) {
+        R <- binom.test(G_t * sum(subset), sum(subset), F_t)$p.value
+      } else {
+        R <- G_t/F_t
+      }
+
+    }
+
+    if (sup) {
+      if (ratio %in% c('com', 'sev')) {
+        R <- max(abs(R$rat - R$u))
+      } else {
+        R <- abs(R - 1)
+      }
+    }
+
+
+  } else {
+    R <- lapply(t, function(tt) {
+      tc_prob(y, F_x, tt, ratio = ratio, u = u, lower = lower, sup = sup, qu = qu, subset = subset, var_t = TRUE, test = test, ...)
+    })
+
+    if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
+
+    if (ratio == "occ" || sup || test) {
+      R <- R |> unlist() |> as.vector()
       if (length(t) > 1) R <- data.frame(t = t, rat = R)
-    }
-
-  }
-
-  if (qu) t <- sapply(t, function(tt) mean(y[subset] <= tt))
-
-  if (sup) {
-    if (ratio %in% c('com', 'sev')) {
-      R <- sapply(R, function(r) max(abs(r$rat - r$u)))
     } else {
-      R <- abs(R$rat - 1)
+      names(R) <- round(t, 2)
     }
-    if (length(t) > 1 && !var_t) R <- data.frame(t = t, rat = R)
-  } else if (length(t) == 1) {
-    R <- R[[1]]
-  } else if (ratio %in% c('com', 'sev') && !var_t) {
-    names(R) <- round(t, 2)
+
   }
 
   return(R)
