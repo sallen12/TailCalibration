@@ -21,6 +21,8 @@
 #' The arguments \code{a} and \code{b} are numerical values corresponding to the lower and upper bound of
 #' the interval of interest. If we wish to assess forecast calibration when predicting outcomes
 #' that exceed a threshold \code{t}, then we can set \code{a = t} and \code{b = Inf}.
+#' \code{a} and \code{b} should either be single values, or vectors of length \code{length(y)},
+#' in which case each cPIT value corresponds to different thresholds.
 #'
 #' By default, \code{NA} is returned for the entries of \code{y} that are not in the specified range, with
 #' the cPIT value corresponding to `y` returned otherwise. The default output of the functions is
@@ -85,6 +87,7 @@
 #'
 #' @export
 cpit_sample <- function(y, dat, a = -Inf, b = Inf, kde = FALSE, bw = NULL, return_na = TRUE){
+  if (sum(y >= a & y <= b, na.rm = T) == 0) warning(paste("no values in y fall between a and b"))
   if (kde) {
     if (is.null(bw)) bw <- apply(dat, 1, bw.nrd)
     pit <- sapply(seq_along(y), function(i) pkde(y[i], m_vec = dat[i, ], s_vec = bw[i], a, b))
@@ -104,11 +107,8 @@ pkde <- function(q, m_vec, s_vec, a = -Inf, b = Inf){
   p_a <- mean(pnorm(a, m_vec, s_vec))
   p_b <- mean(pnorm(b, m_vec, s_vec))
   p <- (p_q - p_a)/(p_b - p_a)
-  if (a == -Inf) {
-    p[p_b == 0] <- 0
-  } else if (b == Inf) {
-    p[p_a == 1] <- 1
-  }
+  p[p_b == 0] <- 0
+  p[p_a == 1] <- 1
   p[q <= a | q >= b] <- NA
   return(p)
 }
@@ -129,11 +129,8 @@ pens <- function(q, dat, a = -Inf, b = Inf){
     v <- runif(nrow(dat), p_q_m, p_q)
   }
   p <- (v - p_a)/(p_b - p_a)
-  if (a == -Inf) {
-    p[p_b == 0] <- 0
-  } else if (b == Inf) {
-    p[p_a == 1] <- 1
-  }
+  p[p_b == 0] <- 0
+  p[p_a == 1] <- 1
   p[q <= a | q >= b] <- NA
   return(p)
 }

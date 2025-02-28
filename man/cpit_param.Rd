@@ -95,9 +95,11 @@ corresponding to the conditional distribution given that the observation is in t
 The arguments \code{a} and \code{b} are numerical values corresponding to the lower and upper bound of
 the interval of interest. If we wish to assess forecast calibration when predicting outcomes
 that exceed a threshold \code{t}, then we can set \code{a = t} and \code{b = Inf}.
+\code{a} and \code{b} should either be single values, or vectors of length \code{length(y)},
+in which case each cPIT value corresponds to different thresholds.
 
 By default, \code{NA} is returned for the entries of \code{y} that are not in the specified range, with
-the cPIT value corresponding to `y` returned otherwise. The default output of the functions is
+the cPIT value corresponding to \code{y} returned otherwise. The default output of the functions is
 therefore a numeric vector of the same length as \code{y}. If \code{return_na = FALSE}, these \code{NA}'s are
 not returned, and the output is instead a numeric containing just the valid cPIT values.
 

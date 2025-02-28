@@ -22,9 +22,11 @@
 #' The arguments \code{a} and \code{b} are numerical values corresponding to the lower and upper bound of
 #' the interval of interest. If we wish to assess forecast calibration when predicting outcomes
 #' that exceed a threshold \code{t}, then we can set \code{a = t} and \code{b = Inf}.
+#' \code{a} and \code{b} should either be single values, or vectors of length \code{length(y)},
+#' in which case each cPIT value corresponds to different thresholds.
 #'
 #' By default, \code{NA} is returned for the entries of \code{y} that are not in the specified range, with
-#' the cPIT value corresponding to `y` returned otherwise. The default output of the functions is
+#' the cPIT value corresponding to \code{y} returned otherwise. The default output of the functions is
 #' therefore a numeric vector of the same length as \code{y}. If \code{return_na = FALSE}, these \code{NA}'s are
 #' not returned, and the output is instead a numeric containing just the valid cPIT values.
 #'
@@ -93,24 +95,13 @@ NULL
 #' @rdname cpit_param
 #' @export
 cpit_dist <- function(y, F_x, a = -Inf, b = Inf, return_na = TRUE, ...) {
-  if (sum(y >= a & y <= b, na.rm = T) == 0) warning(paste("no values in y fall between a =", a, "and b =", b))
+  if (sum(y >= a & y <= b, na.rm = T) == 0) warning(paste("no values in y fall between a and b"))
   p_y <- F_x(y, ...)
-  if (a == -Inf) {
-    p_a <- 0
-  } else {
-    p_a <- F_x(a, ...)
-  }
-  if (b == Inf) {
-    p_b <- 1
-  } else {
-    p_b <- F_x(b, ...)
-  }
+  p_a <- F_x(a, ...)
+  p_b <- F_x(b, ...)
   pit <- (p_y - p_a)/(p_b - p_a)
-  if (a == -Inf) {
-    pit[p_b == 0] <- 0
-  } else if (b == Inf) {
-    pit[p_a == 1] <- 1
-  }
+  pit[p_b == 0] <- 0
+  pit[p_a == 1] <- 1
   pit[y <= a | y >= b] <- NA
   if (return_na) {
     return(pit)
